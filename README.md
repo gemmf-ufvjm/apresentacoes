@@ -8,7 +8,7 @@ Este repositório publica, via **GitHub Pages**, uma vitrine simples e responsiv
 
 **Acesse:** [https://gemmf-ufvjm.github.io/apresentacoes/](https://gemmf-ufvjm.github.io/apresentacoes/)
 
-<img width="1200" height="909" alt="image" src="https://github.com/user-attachments/assets/15f5403f-677a-4d1f-87ba-35fd473930b1" />
+[<img width="787" height="898" alt="image" src="https://github.com/user-attachments/assets/258eda7a-ec31-4144-b309-21e8bf90ee96" />](https://gemmf-ufvjm.github.io/apresentacoes/)
 
 ---
 
