@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Biblioteca de Eventos Científicos</title>
+  <meta name="description" content="Coleção de PDFs de eventos científicos com busca, filtros e banners carregados por arquivos JSON individuais." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: light dark; }
+    html { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif; }
+    .fade-in { animation: fade-in .25s ease-out; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+    /* fallback cross-browser (evita color-mix) */
+    .glass { background: rgba(255,255,255,.7); }
+    @media (prefers-color-scheme: dark){ .glass{ background: rgba(10,10,10,.7);} }
+  </style>
+</head>
+<body class="bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 min-h-screen">
+  <!-- Header / Hero -->
+  <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-neutral-900/70 border-b border-neutral-200/70 dark:border-neutral-800/80">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
+      <button id="btn-menu" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Filtros">
+        <!-- ícone sanduíche -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+      </button>
+      <div class="flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-indigo-600"><path d="M11 2a1 1 0 0 1 1 1v1.055a8.001 8.001 0 0 1 6.945 6.945H20a1 1 0 1 1 0 2h-1.055A8.001 8.001 0 0 1 12 19.945V21a1 1 0 1 1-2 0v-1.055A8.001 8.001 0 0 1 3.055 13H2a1 1 0 1 1 0-2h1.055A8.001 8.001 0 0 1 10 4.055V3a1 1 0 0 1 1-1Zm0 4a6 6 0 1 0 0 12A6 6 0 0 0 11 6Z"/></svg>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">Biblioteca de Eventos Científicos</h1>
+          <p class="text-xs text-neutral-500 dark:text-neutral-400">GitHub Pages • 100% estático</p>
+        </div>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <div class="relative hidden sm:block">
+          <input id="q" type="search" placeholder="Buscar título, autores, evento..." class="w-72 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 pl-9 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        </div>
+        <button id="btn-filtros" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm hover:bg-indigo-700">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h18M6 12h12M10 19h4"/></svg>
+          Filtros
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-8">
+    <!-- Banners -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">Banners</h2>
+        <div class="flex items-center gap-2">
+          <button id="add-banner" class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
+            <span class="text-xl leading-none">+</span> Adicionar banner
+          </button>
+          <button id="exportar-banner-json" class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Exportar último banner adicionado como JSON">
+            Exportar banner (JSON)
+          </button>
+        </div>
+      </div>
+      <p class="text-xs text-neutral-500 dark:text-neutral-400 -mt-2 mb-2">Coloque arquivos <code>.json</code> na pasta <code>json/banners/</code> e liste-os em <code>json/banners/index.json</code>. Cada JSON descreve um banner.</p>
+      <div id="banners" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <template id="tpl-banner">
+        <article class="group h-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div class="aspect-[16/9] overflow-hidden bg-neutral-100 dark:bg-neutral-800 cursor-zoom-in">
+            <img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform banner-img" alt="Prévia do banner"/>
+          </div>
+          <div class="p-4 space-y-2">
+            <h3 class="font-semibold leading-tight line-clamp-2 titulo"></h3>
+            <div class="text-sm text-neutral-600 dark:text-neutral-400 autores"></div>
+            <div class="flex flex-wrap gap-2 pt-1">
+              <a class="btn-pdf inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm hover:bg-indigo-700" target="_blank" rel="noopener">PDF</a>
+              <a class="btn-pptx inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" target="_blank" rel="noopener">PPTX</a>
+            </div>
+          </div>
+        </article>
+      </template>
+    </section>
+
+    <!-- Barra de estado -->
+    <div class="flex items-center justify-between">
+      <p id="contagem" class="text-sm text-neutral-600 dark:text-neutral-400">Carregando…</p>
+      <div class="flex items-center gap-2">
+        <button id="exportar" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm hover:bg-indigo-700">Exportar CSV</button>
+        <button id="limpar" class="inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Limpar filtros</button>
+      </div>
+    </div>
+
+    <!-- Lista de trabalhos -->
+    <section id="lista" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></section>
+
+    <!-- Vazio -->
+    <template id="tpl-vazio">
+      <div class="col-span-full text-center py-16 border-2 border-dashed rounded-2xl border-neutral-300 dark:border-neutral-700">
+        <p class="text-base">Nenhum item encontrado com os filtros atuais.</p>
+        <p class="text-sm text-neutral-500 mt-1">Tente remover filtros ou buscar por outras palavras.</p>
+      </div>
+    </template>
+
+    <!-- Cartão de trabalho -->
+    <template id="tpl-card">
+      <article class="group h-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+        <div class="p-4 space-y-2">
+          <h3 class="font-semibold leading-tight line-clamp-2 group-hover:underline decoration-2 underline-offset-2"></h3>
+          <div class="text-sm text-neutral-600 dark:text-neutral-400 flex flex-wrap gap-x-3 gap-y-1">
+            <span class="data"></span>
+            <span class="sep">•</span>
+            <span class="evento"></span>
+          </div>
+          <div class="flex flex-wrap gap-1 mt-1 tags"></div>
+          <p class="text-sm text-neutral-700 dark:text-neutral-300 line-clamp-3 descricao"></p>
+        </div>
+        <div class="px-4 pb-4 flex items-center gap-2">
+          <a class="abrir inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm hover:bg-indigo-700" target="_blank" rel="noopener">Abrir PDF</a>
+          <a class="baixar inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" download>Baixar</a>
+          <div class="ml-auto text-xs text-neutral-500"></div>
+        </div>
+      </article>
+    </template>
+  </main>
+
+  <!-- Painel de filtros (modal) -->
+  <dialog id="dlg-filtros" class="rounded-2xl p-0 w-full max-w-xl bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-800 shadow-2xl">
+    <form method="dialog" class="flex flex-col h-full">
+      <header class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+        <h3 class="font-semibold">Filtros</h3>
+        <button class="rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800" value="close" aria-label="Fechar">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="p-4 space-y-4 overflow-y-auto">
+        <div>
+          <label for="q-modal" class="block text-sm font-medium mb-1">Buscar</label>
+          <input id="q-modal" type="search" placeholder="título, autores, evento, palavras-chave..." class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <details class="rounded-xl border border-neutral-200 dark:border-neutral-800">
+          <summary class="px-3 py-2 cursor-pointer select-none">Mais filtros</summary>
+          <div class="p-3 grid sm:grid-cols-2 gap-3">
+            <div>
+              <label for="evento" class="block text-sm font-medium mb-1">Evento</label>
+              <select id="evento" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div>
+              <label for="tema" class="block text-sm font-medium mb-1">Tema</label>
+              <select id="tema" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div>
+              <label for="de" class="block text-sm font-medium mb-1">Data (de)</label>
+              <input id="de" type="date" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label for="ate" class="block text-sm font-medium mb-1">Data (até)</label>
+              <input id="ate" type="date" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div class="sm:col-span-2">
+              <label for="ordenar" class="block text-sm font-medium mb-1">Ordenar por</label>
+              <select id="ordenar" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="data_desc">Data (recente → antigo)</option>
+                <option value="data_asc">Data (antigo → recente)</option>
+                <option value="titulo_asc">Título (A–Z)</option>
+                <option value="titulo_desc">Título (Z–A)</option>
+              </select>
+            </div>
+          </div>
+        </details>
+      </div>
+      <footer class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+        <button id="btn-limpar-modal" class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Limpar</button>
+        <button class="rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm" value="close">Fechar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Lightbox para imagens de banner -->
+  <dialog id="dlg-img" class="rounded-xl p-0 w-full max-w-5xl bg-transparent backdrop:bg-black/70">
+    <div class="relative">
+      <img id="img-full" class="w-full h-auto rounded-xl" alt="Visualização do banner" />
+      <form method="dialog">
+        <button class="absolute top-2 right-2 rounded-lg bg-white/90 dark:bg-neutral-900/90 p-2" aria-label="Fechar">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Modal de adicionar banner -->
+  <dialog id="dlg-add-banner" class="rounded-2xl p-0 w-full max-w-xl bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-800 shadow-2xl">
+    <form method="dialog" class="flex flex-col h-full" id="form-banner">
+      <header class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+        <h3 class="font-semibold">Novo banner</h3>
+        <button class="rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800" value="close" aria-label="Fechar">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="p-4 space-y-3">
+        <div>
+          <label class="block text-sm font-medium mb-1">Título</label>
+          <input name="titulo" required class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Autores/Créditos (opcional)</label>
+          <input name="autores" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">URL da imagem (PNG/JPG)</label>
+          <input name="img" required placeholder="https://.../banner.jpg" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Link PDF (opcional)</label>
+            <input name="pdf" placeholder="pdfs/banner.pdf" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Link PPTX (opcional)</label>
+            <input name="pptx" placeholder="pptx/banner.pptx" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+        </div>
+      </div>
+      <footer class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+        <button class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" value="close">Cancelar</button>
+        <button id="salvar-banner" class="rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm">Adicionar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <footer class="max-w-7xl mx-auto px-4 pb-12 text-xs text-neutral-500 dark:text-neutral-400">
+    <hr class="border-neutral-200 dark:border-neutral-800 mb-4" />
+    <p>Feito para rodar no GitHub Pages em modo estático. Personalize à vontade ✨</p>
+  </footer>
+
+  <script>
+    // === Config ===
+    const DATA_JSON_URL = 'data.json';
+
+    // Fallback de exemplo
+    const FALLBACK_ITEMS = [
+      {
+        id: 'ex-001',
+        titulo: 'Análise de Dados Climáticos no Sudeste',
+        autores: 'Silva, M.; Souza, R.',
+        evento: 'Simpósio de Climatologia 2024',
+        tema: ['Clima', 'Dados'],
+        palavrasChave: ['precipitação', 'temperatura'],
+        data: '2024-09-20',
+        descricao: 'Estudo sobre variabilidade de precipitação no sudeste do Brasil e impactos em eventos extremos.',
+        arquivo: 'pdfs/analise-clima.pdf',
+        tamanhoBytes: 734003
+      },
+      {
+        id: 'ex-002',
+        titulo: 'Aprendizado de Máquina aplicado a Saúde',
+        autores: 'Oliveira, T.; Araújo, L.',
+        evento: 'Congresso de IA em Saúde 2023',
+        tema: ['IA', 'Saúde'],
+        palavrasChave: ['machine learning', 'diagnóstico'],
+        data: '2023-11-12',
+        descricao: 'Modelos preditivos para triagem de pacientes em atenção primária.',
+        arquivo: 'pdfs/ia-saude.pdf',
+        tamanhoBytes: 2048576
+      }
+    ];
+
+    const FALLBACK_BANNERS = [
+      {
+        id: 'ban-001',
+        titulo: 'Banner de Exemplo — Climatologia',
+        autores: 'Silva et al.',
+        img: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&q=80&auto=format&fit=crop',
+        pdf: 'pdfs/banner-exemplo.pdf',
+        pptx: 'pptx/banner-exemplo.pptx'
+      }
+    ];
+
+    // Pasta de JSONs de banners (um arquivo .json por banner)
+    const BANNERS_DIR = 'json/banners/'; // coloque aqui seus .json de banner
+    const BANNERS_INDEX = BANNERS_DIR + 'index.json'; // lista de arquivos JSON (manifest)
+
+    // === Helpers ===
+    const $ = (sel, el = document) => el.querySelector(sel);
+    const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
+
+    function baixarJSON(url) {
+      return fetch(url, { cache: 'no-store' }).then(r => {
+        if (!r.ok) throw new Error('HTTP '+r.status+' em '+url);
+        return r.json();
+      });
+    }
+
+    function formatarData(yyyyMMdd) {
+      if (!yyyyMMdd) return '';
+      const d = new Date(yyyyMMdd);
+      if (Number.isNaN(d.getTime())) return yyyyMMdd;
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' });
+    }
+
+    function formatarBytes(bytes) {
+      if (!Number.isFinite(bytes)) return '';
+      const u = ['B','KB','MB','GB'];
+      let i = 0; let n = bytes;
+      while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+      return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
+    }
+
+    function uniq(arr) { return [...new Set(arr.filter(Boolean))]; }
+
+    function normalizarItem(item) {
+      return {
+        id: item.id || crypto.randomUUID(),
+        titulo: item.titulo || 'Sem título',
+        autores: item.autores || '',
+        evento: item.evento || '',
+        tema: item.tema || [],
+        palavrasChave: item.palavrasChave || [],
+        data: item.data || '',
+        descricao: item.descricao || '',
+        arquivo: item.arquivo,
+        tamanhoBytes: item.tamanhoBytes,
+      };
+    }
+
+    function normalizarBanner(b) {
+      return {
+        id: b.id || crypto.randomUUID(),
+        titulo: b.titulo || 'Banner',
+        autores: b.autores || '',
+        img: b.img || '',
+        pdf: b.pdf || '',
+        pptx: b.pptx || ''
+      };
+    }
+
+    async function carregarBannersDoManifest(){
+      try {
+        const idx = await baixarJSON(BANNERS_INDEX); // esperado: ["a.json","b.json",...]
+        if (!Array.isArray(idx) || !idx.length) return [];
+        const files = await Promise.all(
+          idx.map(async (name)=>{
+            try { const b = await baixarJSON(BANNERS_DIR + name); return normalizarBanner(b); }
+            catch(_e){ console.warn('Banner JSON inválido:', name, _e.message); return null; }
+          })
+        );
+        return files.filter(Boolean);
+      } catch(e){
+        console.warn('Sem manifest de banners, usando fallback', e.message);
+        return FALLBACK_BANNERS.map(normalizarBanner);
+      }
+    }
+
+    function aplicarOrdenacao(items, ordem) {
+      const arr = [...items];
+      switch (ordem) {
+        case 'data_asc': return arr.sort((a,b) => (a.data || '').localeCompare(b.data || ''));
+        case 'titulo_asc': return arr.sort((a,b) => a.titulo.localeCompare(b.titulo, undefined, {sensitivity: 'base'}));
+        case 'titulo_desc': return arr.sort((a,b) => b.titulo.localeCompare(a.titulo, undefined, {sensitivity: 'base'}));
+        case 'data_desc':
+        default: return arr.sort((a,b) => (b.data || '').localeCompare(a.data || ''));
+      }
+    }
+
+    function toCSV(items) {
+      const cols = ['id','titulo','autores','evento','tema','palavrasChave','data','descricao','arquivo','tamanhoBytes'];
+      const head = cols.join(',');
+      const esc = v => {
+        if (Array.isArray(v)) v = v.join('|');
+        v = (v ?? '').toString();
+        return /[",
+]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+      };
+      const rows = items.map(it => cols.map(c => esc(it[c])).join(','));
+      return [head, ...rows].join('
+');
+    };
+      const rows = items.map(it => cols.map(c => esc(it[c])).join(','));
+      return [head, ...rows].join('
+');
+    }
+
+    function download(filename, text) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], {type: 'text/plain;charset=utf-8'}));
+      a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    // === Estado ===
+    const state = { q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc' };
+    function lerQueryString(){ const p=new URLSearchParams(location.search); for (const k of Object.keys(state)) state[k]=p.get(k)||state[k]; }
+    function escreverQueryString(){ const p=new URLSearchParams(); for (const [k,v] of Object.entries(state)) if (v) p.set(k,v); history.replaceState(null,'',`${location.pathname}?${p.toString()}`); }
+
+    // === Dados ===
+    let ITENS = []; // trabalhos
+    let BANNERS = []; // banners
+
+    function preencherSelects(items) {
+      const eventos = uniq(items.map(i => i.evento).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+      const temas = uniq(items.flatMap(i => i.tema).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+      const selEvento = $('#evento'); const selTema = $('#tema');
+      selEvento.length = 1; selTema.length = 1; // mantém "Todos"
+      for (const e of eventos) selEvento.add(new Option(e, e));
+      for (const t of temas) selTema.add(new Option(t, t));
+      if (state.evento) selEvento.value = state.evento;
+      if (state.tema) selTema.value = state.tema;
+    }
+
+    function passaFiltro(i) {
+      const termo = state.q.trim().toLowerCase();
+      if (termo) {
+        const campo = [i.titulo, i.autores, i.evento, i.descricao, ...(i.tema||[]), ...(i.palavrasChave||[])]
+          .join(' ').toLowerCase();
+        if (!campo.includes(termo)) return false;
+      }
+      if (state.evento && i.evento !== state.evento) return false;
+      if (state.tema && !(i.tema||[]).includes(state.tema)) return false;
+      if (state.de && (!i.data || i.data < state.de)) return false;
+      if (state.ate && (!i.data || i.data > state.ate)) return false;
+      return true;
+    }
+
+    // === Render ===
+    function renderLista() {
+      escreverQueryString();
+      const lista = $('#lista'); lista.innerHTML = '';
+      const filtrados = aplicarOrdenacao(ITENS.filter(passaFiltro), state.ordenar);
+      $('#contagem').textContent = `${filtrados.length} item(ns)`;
+      if (!filtrados.length) { lista.append($('#tpl-vazio').content.cloneNode(true)); return; }
+      const tpl = $('#tpl-card');
+      for (const it of filtrados) {
+        const card = tpl.content.cloneNode(true);
+        $('h3', card).textContent = it.titulo;
+        $('.data', card).textContent = formatarData(it.data);
+        $('.evento', card).textContent = it.evento || '—';
+        const tags = $('.tags', card);
+        for (const t of it.tema || []) { const span=document.createElement('span'); span.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; span.textContent=t; tags.append(span);}        
+        $('.descricao', card).textContent = it.descricao || '';
+        const abrir = $('.abrir', card); abrir.href = it.arquivo; abrir.setAttribute('aria-label', `Abrir ${it.titulo}`);
+        const baixar = $('.baixar', card); baixar.href = it.arquivo; baixar.download = '';
+        const meta = $('.ml-auto', card); meta.textContent = [it.autores, formatarBytes(it.tamanhoBytes)].filter(Boolean).join(' • ');
+        lista.append(card);
+      }
+    }
+
+    function renderBanners(){
+      const cont = $('#banners'); cont.innerHTML = '';
+      const tpl = $('#tpl-banner');
+      for (const b of BANNERS){
+        const el = tpl.content.cloneNode(true);
+        $('.banner-img', el).src = b.img;
+        $('.titulo', el).textContent = b.titulo;
+        $('.autores', el).textContent = b.autores || '';
+        const btnPdf = $('.btn-pdf', el); const btnPptx = $('.btn-pptx', el);
+        if (b.pdf) { btnPdf.href = b.pdf; } else { btnPdf.classList.add('opacity-50','pointer-events-none'); }
+        if (b.pptx) { btnPptx.href = b.pptx; } else { btnPptx.classList.add('opacity-50','pointer-events-none'); }
+        $('.banner-img', el).addEventListener('click', ()=> abrirImagem(b.img));
+        cont.append(el);
+      }
+    }
+
+    function abrirImagem(src){ const dlg = $('#dlg-img'); $('#img-full').src = src; dlg.showModal(); }
+
+    // === UI ===
+    function conectarUI(){
+      // busca rápida (header)
+      const qHeader = $('#q');
+      if (qHeader){ qHeader.value = state.q; qHeader.addEventListener('input', e => { state.q = e.target.value; renderLista(); }); }
+
+      // modal de filtros
+      const dlg = $('#dlg-filtros');
+      $('#btn-filtros').addEventListener('click', ()=> dlg.showModal());
+      $('#btn-menu').addEventListener('click', ()=> dlg.showModal());
+
+      const qModal = $('#q-modal'); qModal.value = state.q; qModal.addEventListener('input', e=>{ state.q = e.target.value; if (qHeader) qHeader.value = state.q; renderLista(); });
+      $('#evento').addEventListener('change', e=>{ state.evento = e.target.value; renderLista(); });
+      $('#tema').addEventListener('change', e=>{ state.tema = e.target.value; renderLista(); });
+      $('#de').addEventListener('change', e=>{ state.de = e.target.value; renderLista(); });
+      $('#ate').addEventListener('change', e=>{ state.ate = e.target.value; renderLista(); });
+      $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; renderLista(); });
+      $('#btn-limpar-modal').addEventListener('click', (ev)=>{ ev.preventDefault(); limparFiltros(); });
+
+      $('#limpar').addEventListener('click', limparFiltros);
+      $('#exportar').addEventListener('click', ()=>{
+        const filtrados = aplicarOrdenacao(ITENS.filter(passaFiltro), state.ordenar);
+        download('biblioteca.csv', toCSV(filtrados));
+      });
+
+      // adicionar banner
+      $('#add-banner').addEventListener('click', ()=> $('#dlg-add-banner').showModal());
+      let ultimoBannerAdicionado = null;
+      $('#salvar-banner').addEventListener('click', (e)=>{
+        e.preventDefault();
+        const f = new FormData($('#form-banner'));
+        const novo = normalizarBanner({ titulo: f.get('titulo'), autores: f.get('autores'), img: f.get('img'), pdf: f.get('pdf'), pptx: f.get('pptx') });
+        if (!novo.img) return;
+        novo._extra = true; // garante persistência local
+        BANNERS.unshift(novo);
+        ultimoBannerAdicionado = novo;
+        salvarBannersExtras();
+        renderBanners();
+        $('#dlg-add-banner').close();
+        $('#form-banner').reset();
+      });
+      $('#exportar-banner-json').addEventListener('click', ()=>{ if (ultimoBannerAdicionado) exportarBannerComoJSON(ultimoBannerAdicionado); else alert('Adicione um banner primeiro.'); });
+    }
+
+    function limparFiltros(){
+      Object.assign(state, { q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc' });
+      const qHeader = $('#q'); if (qHeader) qHeader.value = '';
+      $('#q-modal').value = '';
+      $('#evento').value = ''; $('#tema').value = ''; $('#de').value = ''; $('#ate').value = ''; $('#ordenar').value = 'data_desc';
+      renderLista();
+    }
+
+    // Persistência local só dos banners adicionados via botão (não mexe no repo)
+    function salvarBannersExtras(){ localStorage.setItem('bannersExtra', JSON.stringify(BANNERS.filter(b=>b._extra))); }
+    function carregarBannersExtras(){ try { return JSON.parse(localStorage.getItem('bannersExtra')||'[]'); } catch{ return []; } }
+    function exportarBannerComoJSON(b){ const minimo = { titulo: b.titulo, autores: b.autores, img: b.img, pdf: b.pdf, pptx: b.pptx }; const json = JSON.stringify(minimo, null, 2); download((b.titulo||'banner')+'.json', json); }
+
+    // === Inicialização ===
+    async function iniciar(){
+      lerQueryString();
+      conectarUI();
+      try {
+        const data = await baixarJSON(DATA_JSON_URL);
+        if (Array.isArray(data)) {
+          ITENS = data.map(normalizarItem);
+        } else if (data && typeof data === 'object') {
+          ITENS = (data.itens || data.items || []).map(normalizarItem);
+        }
+      } catch (e) {
+        console.warn(e.message);
+        ITENS = FALLBACK_ITEMS.map(normalizarItem);
+      }
+
+      // Banners via manifest de JSONs individuais
+      const doManifest = await carregarBannersDoManifest();
+      BANNERS = doManifest.length ? doManifest : FALLBACK_BANNERS.map(normalizarBanner);
+
+      // carrega extras do localStorage
+      const extras = carregarBannersExtras(); for (const b of extras) b._extra = true; BANNERS = [...extras, ...BANNERS];
+
+      preencherSelects(ITENS);
+      renderBanners();
+      renderLista();
+
+      // === Testes rápidos (auto) ===
+      try { selfTests(); } catch(err) { console.warn('Auto-teste falhou:', err); }
+    }
+
+    // === Testes ===
+    function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
+    function selfTests(){
+      // toCSV/esc
+      const csv = toCSV([{id:'1', titulo:'a,b', autores:'x', evento:'', tema:['T'], palavrasChave:[], data:'2024-01-01', descricao:'linha1\nlinha2', arquivo:'f.pdf', tamanhoBytes:10}]);
+      expect('CSV tem quebra de linha', /
+/.test(csv));
+      expect('CSV cita vírgula', /"a,b"/.test(csv));
+      expect('CSV cita quebra de linha', /"linha1\nlinha2"/.test(csv));
+      // ordenar
+      const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
+      expect('Ordena por data desc', ord[0].data==='2025-01-01');
+      // filtro básico
+      const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
+      expect('Filtro sem termo retorna true', ok===true);
+      // banners manifest
+      expect('Fallback banners tem ao menos 1', FALLBACK_BANNERS.length>=1);
+      expect('Normalizar banner mantém campos centrais', !!normalizarBanner({titulo:'t', img:'u'}).img);
+    }]);
+      expect('CSV tem quebra de linha', /
+/.test(csv));
+      expect('CSV cita vírgula', /"a,b"/.test(csv));
+      expect('CSV cita quebra de linha', /"linha1
+linha2"/.test(csv));
+      // ordenar
+      const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
+      expect('Ordena por data desc', ord[0].data==='2025-01-01');
+      // filtro básico
+      const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
+      expect('Filtro sem termo retorna true', ok===true);
+      // banners manifest
+      expect('Fallback banners tem ao menos 1', FALLBACK_BANNERS.length>=1);
+      expect('Normalizar banner mantém campos centrais', !!normalizarBanner({titulo:'t', img:'u'}).img);
+    }
+
+    iniciar();
+  </script>
+</body>
+</html>
