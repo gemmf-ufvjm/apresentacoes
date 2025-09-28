@@ -95,7 +95,7 @@
       </div>
     </div>
 
-    <!-- Lista de trabalhos -->
+    <!-- Lista de trabalhos (opcional) -->
     <section id="lista" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></section>
 
     <!-- Vazio -->
@@ -106,7 +106,7 @@
       </div>
     </template>
 
-    <!-- Cartão de trabalho -->
+    <!-- Cartão de trabalho (para data.json, opcional) -->
     <template id="tpl-card">
       <article class="group h-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
         <div class="p-4 space-y-2">
@@ -288,7 +288,6 @@
       };
     }
 
-
     function coerceBannersFromPayload(payload){
       if (Array.isArray(payload)) return payload.map(normalizarBanner);
       if (payload && typeof payload === 'object') return [normalizarBanner(payload)];
@@ -443,16 +442,6 @@
         if (b.dados) { btnDados.href = b.dados; } else { btnDados.classList.add('opacity-50','pointer-events-none'); }
         cont.append(el);
       }
-    }`;
-        imgEl.addEventListener('error', ()=>{ imgEl.src='data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>imagem indisponível</text></svg>"'; });
-        $('.titulo', el).textContent = b.titulo;
-        $('.autores', el).textContent = b.autores || '';
-        const btnPdf = $('.btn-pdf', el); const btnPptx = $('.btn-pptx', el);
-        if (b.pdf) { btnPdf.href = b.pdf; } else { btnPdf.classList.add('opacity-50','pointer-events-none'); }
-        if (b.pptx) { btnPptx.href = b.pptx; } else { btnPptx.classList.add('opacity-50','pointer-events-none'); }
-        imgEl.addEventListener('click', ()=> abrirImagem(b.img));
-        cont.append(el);
-      }
     }
 
     function abrirImagem(src){ const dlg = $('#dlg-img'); $('#img-full').src = src; dlg.showModal(); }
@@ -472,18 +461,6 @@
       $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; renderBanners(); });
       $('#btn-limpar-modal').addEventListener('click', (ev)=>{ ev.preventDefault(); limparFiltros(); });
       const btnLimpar = $('#limpar'); if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
-    }); }
-      const dlg = $('#dlg-filtros');
-      $('#btn-filtros').addEventListener('click', ()=> dlg.showModal());
-      $('#btn-menu').addEventListener('click', ()=> dlg.showModal());
-      const qModal = $('#q-modal'); qModal.value = state.q; qModal.addEventListener('input', e=>{ state.q = e.target.value; if (qHeader) qHeader.value = state.q; renderLista(); });
-      $('#evento').addEventListener('change', e=>{ state.evento = e.target.value; renderLista(); });
-      $('#tema').addEventListener('change', e=>{ state.tema = e.target.value; renderLista(); });
-      $('#de').addEventListener('change', e=>{ state.de = e.target.value; renderLista(); });
-      $('#ate').addEventListener('change', e=>{ state.ate = e.target.value; renderLista(); });
-      $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; renderLista(); });
-      $('#btn-limpar-modal').addEventListener('click', (ev)=>{ ev.preventDefault(); limparFiltros(); });
-      const btnLimpar = $('#limpar'); if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
     }
 
     function limparFiltros(){
@@ -491,10 +468,9 @@
       const qHeader = $('#q'); if (qHeader) qHeader.value = '';
       const qm = $('#q-modal'); if (qm) qm.value = '';
       $('#evento').value = ''; $('#tema').value = ''; $('#de').value = ''; $('#ate').value = ''; $('#ordenar').value = 'data_desc';
-      renderLista();
+      renderBanners();
+      if (ITENS.length) renderLista();
     }
-
-    // Persistência local removida (não há botões de adicionar/exportar)
 
     // === Inicialização ===
     async function iniciar(){
@@ -514,7 +490,6 @@
 
       preencherSelectsBanners(BANNERS); buildMenuEventos(BANNERS);
       renderBanners();
-      // a lista de trabalhos via data.json é opcional; só renderiza se houver
       if (ITENS.length) renderLista();
 
       try { selfTests(); } catch(err) { console.warn('Auto-teste falhou:', err); }
@@ -525,11 +500,9 @@
     function selfTests(){
       // toCSV/esc
       const csv = toCSV([{id:'1', titulo:'a,b', autores:'x', evento:'', tema:['T'], palavrasChave:[], data:'2024-01-01', descricao:'linha1\nlinha2', arquivo:'f.pdf', tamanhoBytes:10}]);
-      expect('CSV tem quebra de linha', /
-/.test(csv));
+      expect('CSV tem quebra de linha', /\n/.test(csv));
       expect('CSV cita vírgula', /"a,b"/.test(csv));
-      expect('CSV cita quebra de linha', /"linha1
-linha2"/.test(csv));
+      expect('CSV cita quebra de linha', /"linha1\nlinha2"/.test(csv));
       // ordenar
       const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
       expect('Ordena por data desc', ord[0].data==='2025-01-01');
@@ -538,7 +511,7 @@ linha2"/.test(csv));
       expect('Filtro sem termo retorna true', ok===true);
       // constantes
       expect('BANNERS_INDEX_FILE é index.json', BANNERS_INDEX_FILE==='index.json');
-      expect('Candidatos de pasta válidos', Array.isArray(BANNERS_DIR_CANDIDATES));
+      expect('Candidatos de pasta válidos', Array.isArray(BANNERS_DIR_CANDIDATES) && BANNERS_DIR_CANDIDATES.includes('json/banners/') && BANNERS_DIR_CANDIDATES.includes('banners/json/banners/'));
       // coerce banners: objeto e array
       const one = coerceBannersFromPayload({ titulo:'A', img:'x.jpg', evento:'E', tema:['T'], data:'2024-01-01' });
       expect('coerce aceita objeto único', Array.isArray(one) && one.length===1 && one[0].titulo==='A');
@@ -558,23 +531,7 @@ linha2"/.test(csv));
         expect('Filtro por tema inclui item com tema', f===true);
         expect('Filtro por tema exclui item sem tema', f2===false);
       } finally { Object.assign(state, prev); }
-    }]);
-      expect('CSV tem quebra de linha', /\n/.test(csv));
-      expect('CSV cita vírgula', /"a,b"/.test(csv));
-      expect('CSV cita quebra de linha', /"linha1\nlinha2"/.test(csv));
-      // ordenar
-      const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
-      expect('Ordena por data desc', ord[0].data==='2025-01-01');
-      // filtro básico (sem termo)
-      const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
-      expect('Filtro sem termo retorna true', ok===true);
-      // constantes
-      expect('BANNERS_INDEX_FILE é index.json', BANNERS_INDEX_FILE==='index.json');
-      // candidatos de pasta incluem as duas opções
-      expect('Candidatos de pasta válidos', Array.isArray(BANNERS_DIR_CANDIDATES) && BANNERS_DIR_CANDIDATES.includes('json/banners/') && BANNERS_DIR_CANDIDATES.includes('banners/json/banners/'));
-      // banner normalizado mantém imagem
-      expect('Normalizar banner mantém img', !!normalizarBanner({titulo:'t', img:'u.jpg'}).img);
-      // verificação de content-type
+      // isLikelyJSONResponse
       expect('isLikelyJSONResponse aceita application/json', isLikelyJSONResponse(new Response(new Blob([]), { headers: { 'content-type': 'application/json' } })) === true);
     }
 
