@@ -6,12 +6,11 @@ Este repositório publica, via **GitHub Pages**, uma vitrine simples e responsiv
 
 ## 🌐 Site (GitHub Pages)
 
-<a href="https://gemmf-ufvjm.github.io/apresentacoes/" target="_blank">
-  🌐 Acesse a GitHub Page do projeto
-</a>
+🌐 Acesse a GitHub Page do projeto: https://gemmf-ufvjm.github.io/apresentacoes/
+
 
 <a href="https://gemmf-ufvjm.github.io/apresentacoes/" target="_blank">
-  <img width="787" height="898" alt="image" src="https://github.com/user-attachments/assets/258eda7a-ec31-4144-b309-21e8bf90ee96" />
+  <img width="400" height="420" alt="image" src="https://github.com/user-attachments/assets/258eda7a-ec31-4144-b309-21e8bf90ee96" />
 </a>
 
 ---
