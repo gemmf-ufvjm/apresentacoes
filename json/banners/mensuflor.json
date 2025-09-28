@@ -1,4 +1,34 @@
 [
+
+  {
+    "titulo": "GRADIENTES DE ALTURA DO DOSSEL ENTRE AS REGIÕES FITOECOLÓGICAS DA AMAZÔNIA",
+    "autores": "Gustavo Mourão; Eric Gorgens",
+    "evento": "MensuFlor 2025",
+    "tema": ["Floresta", "Altimetria", "LiDAR"],
+    "data": "2025-03-10",
+    "descricao": "Resultados preliminares de gradientes do dossel com LiDAR aéreo.",
+    "resumo": "Objetivo, dados, método e principais achados em alto nível.",
+    "img": "assets/mensuflor_2025/gustavo_2.jpg",
+    "pdf": "assets/mensuflor_2025/gustavo_2.pdf",
+    "pptx": "assets/mensuflor_2025/gustavo_2.pptx",
+    "repo": "https://github.com/SEU_USER/SEU_REPO",
+    "dados": "https://drive.google.com/SEU_LINK_DE_DADOS",
+    "tipo": "congresso"
+  },
+  {
+    "titulo": "Título do banner do Igor 2025",
+    "autores": "Gustavo Mourão; Igor",
+    "evento": "MensuFlor 2025",
+    "tema": ["Floresta", "Sensoriamento"],
+    "data": "2025-03-10",
+    "descricao": "Comparação entre abordagens.",
+    "metodologia": "Pipeline resumido, etapas, métricas e limitações.",
+    "img": "assets/mensuflor_2025/gustavo_2.jpg",
+    "pdf": "assets/mensuflor_2025/gustavo_2.pdf",
+    "pptx": "assets/mensuflor_2025/gustavo_2.pptx",
+    "github": "https://github.com/SEU_USER/OUTRO_REPO",
+    "tipo": "evento"
+  },
   {
     "titulo": "GRADIENTES DE ALTURA DO DOSSEL ENTRE AS REGIÕES FITOECOLÓGICAS DA AMAZÔNIA",
     "autores": "Gustavo Mourão; Eric Gorgens",
