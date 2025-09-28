@@ -2,13 +2,6 @@
 
 Este repositório publica, via **GitHub Pages**, uma vitrine simples e responsiva para **banners, apresentações e textos (resumos/metodologias)** de eventos científicos e outras atividades dos grupos **GEMMF** e **Treelab**.
 
-A interface carrega **arquivos JSON** (um ou vários itens por arquivo) e exibe para cada banner:
-
-* imagem de capa (ampliação com clique),
-* links para **PDF**, **PPTX** e **Texto** (PDF de resumo/metodologia),
-* links opcionais para **GitHub (repo)** e **Dados** (Drive/Zenodo/outros),
-* **abas por categoria**, **menu lateral por evento**, filtros (evento/tema/data), busca por texto e **paginação automática** (4 linhas por página, adaptável ao número de colunas).
-
 ---
 
 ## 🌐 Site (GitHub Pages)
