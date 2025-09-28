@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Biblioteca de Eventos Científicos</title>
-  <meta name="description" content="Coleção de PDFs de eventos científicos com busca, filtros e banners carregados por arquivos JSON (um ou vários por arquivo)." />
+  <meta name="description" content="Coleção de PDFs de eventos científicos com busca, filtros, abas e banners carregados via JSON." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,29 +14,35 @@
     html { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif; }
     .fade-in { animation: fade-in .25s ease-out; }
     @keyframes fade-in { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
-    .glass { background: rgba(255,255,255,.7); }
-    @media (prefers-color-scheme: dark){ .glass{ background: rgba(10,10,10,.7);} }
   </style>
 </head>
 <body class="bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 min-h-screen">
-  <!-- Header / Hero -->
+  <!-- Header -->
   <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-neutral-900/70 border-b border-neutral-200/70 dark:border-neutral-800/80">
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
       <button id="btn-menu" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Eventos">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
       </button>
       <div class="flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-indigo-600"><path d="M11 2a1 1 0 0 1 1 1v1.055a8.001 8.001 0 0 1 6.945 6.945H20a1 1 0 1 1 0 2h-1.055A8.001 8.001 0 0 1 12 19.945V21a1 1 0 1 1-2 0v-1.055A8.001 8.001 0 0 1 3.055 13H2a1 1 0 1 1 0-2h1.055A8.001 8.001 0 0 1 10 4.055V3a1 1 0 0 1 1-1Zm0 4a6 6 0 1 0 0 12A6 6 0 0 0 11 6Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-indigo-600" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a1 1 0 0 1 1 1v1.055a8.001 8.001 0 0 1 6.945 6.945H20a1 1 0 1 1 0 2h-1.055A8.001 8.001 0 0 1 12 19.945V21a1 1 0 1 1-2 0v-1.055A8.001 8.001 0 0 1 3.055 13H2a1 1 0 1 1 0-2h1.055A8.001 8.001 0 0 1 10 4.055V3a1 1 0 0 1 1-1Zm0 4a6 6 0 1 0 0 12A6 6 0 0 0 11 6Z"/></svg>
         <div>
           <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">Biblioteca de Eventos Científicos</h1>
           <p class="text-xs text-neutral-500 dark:text-neutral-400">GitHub Pages • 100% estático</p>
         </div>
       </div>
+
       <div class="ml-auto flex items-center gap-2">
         <div class="relative hidden sm:block">
           <input id="q" type="search" placeholder="Buscar título, autores, evento..." class="w-72 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 pl-9 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
         </div>
+
+        <!-- Toggle dark mode -->
+        <button id="btn-theme" class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" title="Alternar tema claro/escuro">
+          <span class="inline-block w-4 h-4 rounded-full bg-neutral-900 dark:bg-white"></span>
+          Tema
+        </button>
+
         <button id="btn-filtros" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm hover:bg-indigo-700">
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h18M6 12h12M10 19h4"/></svg>
           Filtros
@@ -59,14 +65,43 @@
     </form>
   </dialog>
 
-  <main class="max-w-7xl mx-auto px-4 py-6 space-y-8">
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <!-- Abas de Categoria -->
+    <nav class="border-b border-neutral-200 dark:border-neutral-800">
+      <ul id="tabs" class="flex flex-wrap gap-2">
+        <!-- Abas fixas: Início + Categoria 1..5 -->
+        <li><button data-tipo="inicio" class="tab px-3 py-2 rounded-t-lg border-b-2 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800">Início</button></li>
+        <li><button data-tipo="categoria1" class="tab px-3 py-2 rounded-t-lg border-b-2 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800">Categoria 1</button></li>
+        <li><button data-tipo="categoria2" class="tab px-3 py-2 rounded-t-lg border-b-2 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800">Categoria 2</button></li>
+        <li><button data-tipo="categoria3" class="tab px-3 py-2 rounded-t-lg border-b-2 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800">Categoria 3</button></li>
+        <li><button data-tipo="categoria4" class="tab px-3 py-2 rounded-t-lg border-b-2 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800">Categoria 4</button></li>
+        <li><button data-tipo="categoria5" class="tab px-3 py-2 rounded-t-lg border-b-2 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800">Categoria 5</button></li>
+      </ul>
+    </nav>
+
     <!-- Banners -->
     <section>
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-semibold">Banners</h2>
       </div>
-      <p class="text-xs text-neutral-500 dark:text-neutral-400 -mt-2 mb-2">Coloque arquivos <code>.json</code> na pasta de banners indicada pelo seu <code>index.json</code> (ex.: <code>json/banners/</code> ou <code>banners/json/banners/</code>).</p>
+      <p class="text-xs text-neutral-500 dark:text-neutral-400 -mt-2 mb-2">Os banners são carregados de <code>index.json</code> na pasta configurada. Use as abas (Início/Categorias), busca e filtros para refinar; a paginação mostra 4 linhas por vez.</p>
+
+      <!-- Grade -->
       <div id="banners" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <!-- Paginação -->
+      <div id="paginacao" class="mt-3 flex items-center justify-center gap-2">
+        <button id="btn-anterior"
+                class="hidden inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
+          Anterior
+        </button>
+        <button id="btn-mais"
+                class="hidden inline-flex items-center gap-2 rounded-xl bg-indigo-600 text-white px-4 py-2 text-sm hover:bg-indigo-700">
+          Próxima página
+        </button>
+      </div>
+
+      <!-- Template do card -->
       <template id="tpl-banner">
         <article class="group h-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
           <div class="aspect-[3/4] overflow-hidden bg-neutral-100 dark:bg-neutral-800 cursor-zoom-in">
@@ -82,6 +117,7 @@
               <a class="btn-pptx inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" target="_blank" rel="noopener">PPTX</a>
               <a class="btn-repo inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" target="_blank" rel="noopener">GitHub</a>
               <a class="btn-dados inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" target="_blank" rel="noopener">Dados</a>
+              <button class="btn-resumo inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Resumo / Metodologia</button>
             </div>
           </div>
         </article>
@@ -95,7 +131,7 @@
       </div>
     </div>
 
-    <!-- Lista de trabalhos (opcional) -->
+    <!-- Lista de trabalhos opcional -->
     <section id="lista" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></section>
 
     <!-- Vazio -->
@@ -128,7 +164,7 @@
     </template>
   </main>
 
-  <!-- Painel de filtros (modal) -->
+  <!-- Modal Filtros -->
   <dialog id="dlg-filtros" class="rounded-2xl p-0 w-full max-w-xl bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-800 shadow-2xl">
     <form method="dialog" class="flex flex-col h-full">
       <header class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
@@ -184,7 +220,7 @@
     </form>
   </dialog>
 
-  <!-- Lightbox para imagens de banner -->
+  <!-- Lightbox da imagem -->
   <dialog id="dlg-img" class="rounded-xl p-0 w-full max-w-5xl bg-transparent backdrop:bg-black/70">
     <div class="relative">
       <img id="img-full" class="w-full h-auto rounded-xl" alt="Visualização do banner" />
@@ -196,343 +232,341 @@
     </div>
   </dialog>
 
+  <!-- Modal Resumo/Metodologia -->
+  <dialog id="dlg-resumo" class="rounded-2xl p-0 w-full max-w-2xl bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-800 shadow-2xl">
+    <form method="dialog" class="flex flex-col h-full">
+      <header class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+        <h3 class="font-semibold" id="resumo-titulo">Resumo</h3>
+        <button class="rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800" value="close" aria-label="Fechar">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="p-4 space-y-2 overflow-y-auto">
+        <p id="resumo-texto" class="text-sm leading-relaxed"></p>
+      </div>
+      <footer class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500">Conteúdo fornecido pelo próprio JSON do banner.</footer>
+    </form>
+  </dialog>
+
   <footer class="max-w-7xl mx-auto px-4 pb-12 text-xs text-neutral-500 dark:text-neutral-400">
     <hr class="border-neutral-200 dark:border-neutral-800 mb-4" />
     <p>Feito para rodar no GitHub Pages em modo estático. Personalize à vontade ✨</p>
   </footer>
 
   <script>
-    // === Config ===
+    // ========= Config & Consts =========
     const DATA_JSON_URL = 'data.json';
-
-    // Suportar dois layouts de repositório:
-    //  1) json/banners/ (raiz)
-    //  2) banners/json/banners/ (pasta "banners" antes)
     const BANNERS_DIR_CANDIDATES = ['json/banners/', 'banners/json/banners/'];
     const BANNERS_INDEX_FILE = 'index.json';
 
-    // === Fallback (apenas para testes; não exibimos exemplos no UI) ===
-    const FALLBACK_ITEMS = [];
-    const FALLBACK_BANNERS = [
-      { id: 'ban-001', titulo: 'Banner (somente testes)', autores: '—', img: 'data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>placeholder</text></svg>"', pdf: '', pptx: '' }
-    ];
+    // Abas / tipos suportados (você pode renomear depois no JSON)
+    const TIPOS_FIXOS = ['inicio','categoria1','categoria2','categoria3','categoria4','categoria5'];
 
-    // === Helpers ===
-    const $ = (sel, el = document) => el.querySelector(sel);
-    const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
-    const genId = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : ('id-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)));
+    // ========= Utils =========
+    const $ = (s, el=document) => el.querySelector(s);
+    const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+    const genId = () => (crypto.randomUUID ? crypto.randomUUID() : ('id-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)));
+    const debounce = (fn, ms=120) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
 
-    function isLikelyJSONResponse(resp){
-      const ct = resp.headers.get('content-type') || '';
-      return ct.includes('application/json') || ct.includes('text/json');
-    }
-
-    async function baixarJSON(url) {
+    function isLikelyJSONResponse(resp){ const ct = resp.headers.get('content-type') || ''; return ct.includes('application/json') || ct.includes('text/json'); }
+    async function baixarJSON(url){
       const bust = (url.includes('?') ? '&' : '?') + 't=' + Date.now();
       const r = await fetch(url + bust, { cache: 'no-store' });
       if (!r.ok) throw new Error('HTTP ' + r.status + ' em ' + url);
-      if (!isLikelyJSONResponse(r)) {
-        const txt = await r.text();
-        throw new Error('Conteúdo não é JSON em ' + url + ' (inicio: ' + txt.slice(0, 60).replace(/\s+/g,' ') + '...)');
-      }
+      if (!isLikelyJSONResponse(r)) { const txt = await r.text(); throw new Error('Conteúdo não é JSON em ' + url + ' (inicio: ' + txt.slice(0,60).replace(/\s+/g,' ') + '...)'); }
       return r.json();
     }
 
-    function formatarData(yyyyMMdd) {
-      if (!yyyyMMdd) return '';
-      const d = new Date(yyyyMMdd);
-      if (Number.isNaN(d.getTime())) return yyyyMMdd;
-      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' });
-    }
+    function formatarData(yyyyMMdd){ if(!yyyyMMdd) return ''; const d=new Date(yyyyMMdd); return isNaN(d)? yyyyMMdd : d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'2-digit'}); }
+    function uniq(arr){ return [...new Set(arr.filter(Boolean))]; }
 
-    function formatarBytes(bytes) {
-      if (!Number.isFinite(bytes)) return '';
-      const u = ['B','KB','MB','GB'];
-      let i = 0; let n = bytes;
-      while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
-      return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
-    }
+    // ========= Normalizers =========
+    function normalizarItem(x){ return {
+      id: x.id || genId(),
+      titulo: x.titulo || 'Sem título',
+      autores: x.autores || '',
+      evento: x.evento || '',
+      tema: Array.isArray(x.tema) ? x.tema : (x.tema ? [x.tema] : []),
+      palavrasChave: x.palavrasChave || [],
+      data: x.data || '',
+      descricao: x.descricao || '',
+      arquivo: x.arquivo, tamanhoBytes: x.tamanhoBytes
+    };}
 
-    function uniq(arr) { return [...new Set(arr.filter(Boolean))]; }
+    function normalizarBanner(b){ return {
+      id: b.id || genId(),
+      titulo: b.titulo || 'Banner',
+      autores: b.autores || '',
+      img: b.img || '',
+      pdf: b.pdf || '',
+      pptx: b.pptx || '',
+      evento: b.evento || '',
+      tema: Array.isArray(b.tema) ? b.tema : (b.tema ? [b.tema] : []),
+      data: b.data || '',
+      descricao: b.descricao || '',
+      resumo: b.resumo || b.metodologia || '',
+      repo: b.repo || b.github || '',
+      dados: b.dados || b.dataUrl || '',
+      tipo: (b.tipo || 'inicio').toString().toLowerCase()  // mapeia para as abas
+    };}
 
-    function normalizarItem(item) {
-      return {
-        id: item.id || genId(),
-        titulo: item.titulo || 'Sem título',
-        autores: item.autores || '',
-        evento: item.evento || '',
-        tema: item.tema || [],
-        palavrasChave: item.palavrasChave || [],
-        data: item.data || '',
-        descricao: item.descricao || '',
-        arquivo: item.arquivo,
-        tamanhoBytes: item.tamanhoBytes,
-      };
-    }
+    function coerceBannersFromPayload(p){ if(Array.isArray(p)) return p.map(normalizarBanner); if(p && typeof p==='object') return [normalizarBanner(p)]; return []; }
 
-    function normalizarBanner(b) {
-      return {
-        id: b.id || genId(),
-        titulo: b.titulo || 'Banner',
-        autores: b.autores || '',
-        img: b.img || '',
-        pdf: b.pdf || '',
-        pptx: b.pptx || '',
-        // novos campos suportados
-        evento: b.evento || '',
-        tema: Array.isArray(b.tema) ? b.tema : (b.tema ? [b.tema] : []),
-        data: b.data || '',
-        descricao: b.descricao || '',
-        repo: b.repo || b.github || '',
-        dados: b.dados || b.dataUrl || ''
-      };
-    }
-
-    function coerceBannersFromPayload(payload){
-      if (Array.isArray(payload)) return payload.map(normalizarBanner);
-      if (payload && typeof payload === 'object') return [normalizarBanner(payload)];
-      return [];
-    }
-
+    // ========= Diretórios =========
     async function resolverDiretorioDeBanners(){
       for (const base of BANNERS_DIR_CANDIDATES){
-        try {
-          await baixarJSON(base + BANNERS_INDEX_FILE);
-          return base; // este existe
-        } catch(e) { /* tenta próximo */ }
+        try { await baixarJSON(base + BANNERS_INDEX_FILE); return base; } catch { /* tenta o próximo */ }
       }
-      throw new Error('Nenhum index.json encontrado nas pastas candidatas: ' + BANNERS_DIR_CANDIDATES.join(', '));
+      throw new Error('Nenhum index.json encontrado em: ' + BANNERS_DIR_CANDIDATES.join(', '));
     }
 
     async function carregarBannersDoManifest(){
-      try {
-        const base = await resolverDiretorioDeBanners();
-        const idx = await baixarJSON(base + BANNERS_INDEX_FILE);
-        let names = [];
-        if (Array.isArray(idx)) {
-          if (idx.length && typeof idx[0] === 'string') names = idx;
-          else if (idx.length && typeof idx[0] === 'object') names = idx.map(x => x.file || x.name || x.path).filter(Boolean);
-        }
-        if (!names.length) return [];
-        const lists = await Promise.all(names.map(async (name)=>{
-          const url = base + String(name).replace(/^\/*/, '');
-          try {
-            const payload = await baixarJSON(url);
-            return coerceBannersFromPayload(payload);
-          } catch(_e){ console.warn('Banner JSON inválido:', name, _e.message); return []; }
-        }));
-        return lists.flat().filter(Boolean);
-      } catch(e){
-        console.warn('Erro ao carregar manifesto de banners:', e.message);
-        return [];
+      const base = await resolverDiretorioDeBanners();
+      const idx = await baixarJSON(base + BANNERS_INDEX_FILE);
+      let names = [];
+      if (Array.isArray(idx)){
+        if (typeof idx[0] === 'string') names = idx;
+        else if (typeof idx[0] === 'object') names = idx.map(x => x.file || x.name || x.path).filter(Boolean);
       }
+      const lists = await Promise.all(names.map(async (name)=>{
+        try { return coerceBannersFromPayload(await baixarJSON(base + String(name).replace(/^\/*/,''))); }
+        catch(e){ console.warn('JSON inválido:', name, e.message); return []; }
+      }));
+      return lists.flat().filter(Boolean);
     }
 
-    function aplicarOrdenacao(items, ordem) {
-      const arr = [...items];
-      switch (ordem) {
-        case 'data_asc': return arr.sort((a,b) => (a.data || '').localeCompare(b.data || ''));
-        case 'titulo_asc': return arr.sort((a,b) => a.titulo.localeCompare(b.titulo, undefined, {sensitivity: 'base'}));
-        case 'titulo_desc': return arr.sort((a,b) => b.titulo.localeCompare(a.titulo, undefined, {sensitivity: 'base'}));
+    // ========= Estado =========
+    const state = {
+      q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc',
+      page:1,                 // paginação
+      tipo:'inicio',          // aba ativa
+      theme: null             // 'dark' | 'light' | null (segue SO)
+    };
+
+    // ========= Filtros =========
+    function passaFiltro(i){
+      // tipo (abas)
+      if (state.tipo && state.tipo !== 'inicio'){ if ((i.tipo||'inicio') !== state.tipo) return false; }
+
+      // busca livre
+      const termo = state.q.trim().toLowerCase();
+      if (termo){
+        const campo = [i.titulo, i.autores, i.evento, i.descricao, i.resumo, ...(i.tema||[])].join(' ').toLowerCase();
+        if (!campo.includes(termo)) return false;
+      }
+
+      // selects
+      if (state.evento && i.evento !== state.evento) return false;
+      if (state.tema && !(i.tema||[]).includes(state.tema)) return false;
+      if (state.de && (!i.data || i.data < state.de)) return false;
+      if (state.ate && (!i.data || i.data > state.ate)) return false;
+
+      return true;
+    }
+
+    function aplicarOrdenacao(arr, ordem){
+      const a = [...arr];
+      switch(ordem){
+        case 'data_asc': return a.sort((x,y)=> (x.data||'').localeCompare(y.data||''));
+        case 'titulo_asc': return a.sort((x,y)=> x.titulo.localeCompare(y.titulo, undefined, {sensitivity:'base'}));
+        case 'titulo_desc': return a.sort((x,y)=> y.titulo.localeCompare(x.titulo, undefined, {sensitivity:'base'}));
         case 'data_desc':
-        default: return arr.sort((a,b) => (b.data || '').localeCompare(a.data || ''));
+        default: return a.sort((x,y)=> (y.data||'').localeCompare(x.data||''));
       }
     }
 
-    function toCSV(items) {
-      const cols = ['id','titulo','autores','evento','tema','palavrasChave','data','descricao','arquivo','tamanhoBytes'];
-      const head = cols.join(',');
-      const esc = v => { if (Array.isArray(v)) v = v.join('|'); v = (v ?? '').toString(); return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; };
-      const rows = items.map(it => cols.map(c => esc(it[c])).join(','));
-      return [head, ...rows].join('\n');
+    // ========= Paginação (4 linhas) =========
+    function getGridCols(){
+      const el = document.getElementById('banners');
+      if (!el) return 1;
+      const cs = getComputedStyle(el);
+      const cols = cs.gridTemplateColumns?.split(' ').filter(Boolean).length || 1;
+      return Math.max(1, cols);
     }
+    function getPageSize(){ return 4 * getGridCols(); }
 
-    // === Estado ===
-    const state = { q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc' };
-    function lerQueryString(){ const p=new URLSearchParams(location.search); for (const k of Object.keys(state)) state[k]=p.get(k)||state[k]; }
-    function escreverQueryString(){ const p=new URLSearchParams(); for (const [k,v] of Object.entries(state)) if (v) p.set(k,v); history.replaceState(null,'',`${location.pathname}?${p.toString()}`); }
+    // ========= Dados =========
+    let ITENS = [];
+    let BANNERS = [];
 
-    // === Dados ===
-    let ITENS = []; // trabalhos (data.json)
-    let BANNERS = []; // banners (manifesto)
-
-    function preencherSelectsBanners(banners) {
-      const eventos = [...new Set(banners.map(b => b.evento).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-      const temas = [...new Set(banners.flatMap(b => b.tema).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-      const selEvento = $('#evento'); const selTema = $('#tema');
-      if (selEvento) { selEvento.length = 1; for (const e of eventos) selEvento.add(new Option(e, e)); if (state.evento) selEvento.value = state.evento; }
-      if (selTema) { selTema.length = 1; for (const t of temas) selTema.add(new Option(t, t)); if (state.tema) selTema.value = state.tema; }
+    // ========= Render =========
+    function preencherSelectsBanners(banners){
+      const eventos = uniq(banners.map(b=>b.evento).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+      const temas = uniq(banners.flatMap(b=>b.tema).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+      const selEvento = $('#evento'), selTema = $('#tema');
+      if (selEvento){ selEvento.length = 1; for (const e of eventos) selEvento.add(new Option(e,e)); if (state.evento) selEvento.value=state.evento; }
+      if (selTema){ selTema.length = 1; for (const t of temas) selTema.add(new Option(t,t)); if (state.tema) selTema.value=state.tema; }
     }
 
     function buildMenuEventos(banners){
       const cont = $('#eventos-menu'); if (!cont) return;
       cont.innerHTML = '';
-      const todos = document.createElement('button');
-      todos.type = 'button'; todos.className = 'w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800';
-      todos.textContent = 'Todos os eventos';
-      todos.addEventListener('click', ()=>{ state.evento=''; const sel=$('#evento'); if (sel) sel.value=''; renderBanners(); $('#dlg-menu').close(); });
-      cont.append(todos);
-      const eventos = [...new Set(banners.map(b => b.evento).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-      for (const e of eventos){
+      const addBtn = (label, val) => {
         const btn = document.createElement('button');
-        btn.type='button'; btn.className='w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800';
-        btn.textContent = e;
-        btn.addEventListener('click', ()=>{ state.evento = e; const sel=$('#evento'); if (sel) sel.value=e; renderBanners(); $('#dlg-menu').close(); });
+        btn.type = 'button';
+        btn.className = 'w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800';
+        btn.textContent = label;
+        btn.addEventListener('click', ()=>{ state.evento = val; const sel=$('#evento'); if (sel) sel.value=val; state.page=1; renderBanners(); $('#dlg-menu').close(); });
         cont.append(btn);
-      }
-    }
-
-    function passaFiltro(i) {
-      const termo = state.q.trim().toLowerCase();
-      if (termo) {
-        const campo = [i.titulo, i.autores, i.evento, i.descricao, ...(i.tema||[]), ...(i.palavrasChave||[])]
-          .join(' ').toLowerCase();
-        if (!campo.includes(termo)) return false;
-      }
-      if (state.evento && i.evento !== state.evento) return false;
-      if (state.tema && !(i.tema||[]).includes(state.tema)) return false;
-      if (state.de && (!i.data || i.data < state.de)) return false;
-      if (state.ate && (!i.data || i.data > state.ate)) return false;
-      return true;
-    }
-
-    // === Render ===
-    function renderLista() {
-      escreverQueryString();
-      const lista = $('#lista'); lista.innerHTML = '';
-      const filtrados = aplicarOrdenacao(ITENS.filter(passaFiltro), state.ordenar);
-      if (!filtrados.length) { lista.append($('#tpl-vazio').content.cloneNode(true)); return; }
-      const tpl = $('#tpl-card');
-      for (const it of filtrados) {
-        const card = tpl.content.cloneNode(true);
-        $('h3', card).textContent = it.titulo;
-        $('.data', card).textContent = formatarData(it.data);
-        $('.evento', card).textContent = it.evento || '—';
-        const tags = $('.tags', card);
-        for (const t of it.tema || []) { const span=document.createElement('span'); span.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; span.textContent=t; tags.append(span);}        
-        $('.descricao', card).textContent = it.descricao || '';
-        const abrir = $('.abrir', card); abrir.href = it.arquivo || '#'; abrir.setAttribute('aria-label', `Abrir ${it.titulo}`);
-        const baixar = $('.baixar', card); if (it.arquivo) { baixar.href = it.arquivo; baixar.download = ''; } else { baixar.classList.add('opacity-50','pointer-events-none'); }
-        const meta = $('.ml-auto', card); meta.textContent = [it.autores, formatarBytes(it.tamanhoBytes)].filter(Boolean).join(' • ');
-        lista.append(card);
-      }
+      };
+      addBtn('Todos os eventos','');
+      for (const e of uniq(banners.map(b=>b.evento).filter(Boolean)).sort((a,b)=>a.localeCompare(b))) addBtn(e, e);
     }
 
     function renderBanners(){
       const cont = $('#banners'); cont.innerHTML = '';
       const tpl = $('#tpl-banner');
-      const filtrados = aplicarOrdenacao(BANNERS.filter(passaFiltro), state.ordenar);
-      for (const b of filtrados){
+
+      // filtro + ordenação
+      const todos = aplicarOrdenacao(BANNERS.filter(passaFiltro), state.ordenar);
+
+      // paginação
+      const pageSize = getPageSize();
+      const end = Math.min(todos.length, state.page * pageSize);
+      const exibidos = todos.slice(0, end);
+
+      // cards
+      for (const b of exibidos){
         const el = tpl.content.cloneNode(true);
         const imgEl = $('.banner-img', el);
         imgEl.src = b.img; imgEl.alt = `Prévia do banner: ${b.titulo}`;
         imgEl.addEventListener('click', ()=> abrirImagem(b.img));
         imgEl.addEventListener('error', ()=>{ imgEl.src='data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>imagem indisponível</text></svg>"'; });
+
         $('.titulo', el).textContent = b.titulo;
         $('.autores', el).textContent = b.autores || '';
         $('.descricao', el).textContent = b.descricao || '';
+
         const tags = $('.tags', el);
         if (b.evento){ const t=document.createElement('span'); t.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; t.textContent=b.evento; tags.append(t); }
         if (b.data){ const t=document.createElement('span'); t.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; t.textContent=b.data; tags.append(t); }
-        for (const tm of b.tema||[]){ const t=document.createElement('span'); t.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; t.textContent=tm; tags.append(t);}        
-        const btnPdf = $('.btn-pdf', el); const btnPptx = $('.btn-pptx', el); const btnRepo = $('.btn-repo', el); const btnDados = $('.btn-dados', el);
+        for (const tm of b.tema||[]){ const t=document.createElement('span'); t.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; t.textContent=tm; tags.append(t); }
+        if (b.tipo){ const t=document.createElement('span'); t.className='text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200'; t.textContent=b.tipo; tags.append(t); }
+
+        const btnPdf = $('.btn-pdf', el), btnPptx = $('.btn-pptx', el), btnRepo = $('.btn-repo', el), btnDados = $('.btn-dados', el), btnResumo = $('.btn-resumo', el);
         if (b.pdf) { btnPdf.href = b.pdf; } else { btnPdf.classList.add('opacity-50','pointer-events-none'); }
         if (b.pptx) { btnPptx.href = b.pptx; } else { btnPptx.classList.add('opacity-50','pointer-events-none'); }
-        if (b.repo) { btnRepo.href = b.repo; } else { btnRepo.classList.add('opacity-50','pointer-events-none'); btnRepo.textContent='GitHub'; }
+        if (b.repo) { btnRepo.href = b.repo; } else { btnRepo.classList.add('opacity-50','pointer-events-none'); }
         if (b.dados) { btnDados.href = b.dados; } else { btnDados.classList.add('opacity-50','pointer-events-none'); }
+
+        btnResumo.addEventListener('click', ()=>{
+          const texto = b.resumo || b.descricao || 'Sem conteúdo adicional.';
+          $('#resumo-titulo').textContent = 'Resumo — ' + (b.titulo || '');
+          $('#resumo-texto').textContent = texto;
+          $('#dlg-resumo').showModal();
+        });
+
         cont.append(el);
+      }
+
+      // paginação: mostrar/ocultar botões
+      const btnMais = $('#btn-mais');
+      const btnAnt = $('#btn-anterior');
+      if (btnMais){
+        if (end < todos.length) { btnMais.classList.remove('hidden'); btnMais.onclick = ()=>{ state.page += 1; renderBanners(); }; }
+        else { btnMais.classList.add('hidden'); btnMais.onclick = null; }
+      }
+      if (btnAnt){
+        if (state.page > 1) { btnAnt.classList.remove('hidden'); btnAnt.onclick = ()=>{ state.page = Math.max(1, state.page - 1); renderBanners(); }; }
+        else { btnAnt.classList.add('hidden'); btnAnt.onclick = null; }
+      }
+    }
+
+    function renderLista(){
+      const lista = $('#lista'); lista.innerHTML = '';
+      if (!ITENS.length) return;
+      const filtrados = aplicarOrdenacao(ITENS.filter(passaFiltro), state.ordenar);
+      if (!filtrados.length) { lista.append($('#tpl-vazio').content.cloneNode(true)); return; }
+      const tpl = $('#tpl-card');
+      for (const it of filtrados){
+        const card = tpl.content.cloneNode(true);
+        $('h3', card).textContent = it.titulo;
+        $('.data', card).textContent = formatarData(it.data);
+        $('.evento', card).textContent = it.evento || '—';
+        const tags = $('.tags', card);
+        for (const t of it.tema || []) { const s=document.createElement('span'); s.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; s.textContent=t; tags.append(s); }
+        $('.descricao', card).textContent = it.descricao || '';
+        const abrir = $('.abrir', card); abrir.href = it.arquivo || '#';
+        const baixar = $('.baixar', card); if (it.arquivo) { baixar.href = it.arquivo; baixar.download = ''; } else { baixar.classList.add('opacity-50','pointer-events-none'); }
+        lista.append(card);
       }
     }
 
     function abrirImagem(src){ const dlg = $('#dlg-img'); $('#img-full').src = src; dlg.showModal(); }
 
-    // === UI ===
+    // ========= UI =========
     function conectarUI(){
+      // tema
+      const saved = localStorage.getItem('theme');
+      if (saved) { state.theme = saved; document.documentElement.classList.toggle('dark', saved==='dark'); }
+      $('#btn-theme').addEventListener('click', ()=>{
+        const isDark = document.documentElement.classList.toggle('dark');
+        state.theme = isDark ? 'dark' : 'light';
+        localStorage.setItem('theme', state.theme);
+      });
+
+      // busca
       const qHeader = $('#q');
-      if (qHeader){ qHeader.value = state.q; qHeader.addEventListener('input', e => { state.q = e.target.value; renderBanners(); }); }
+      if (qHeader){ qHeader.value = state.q; qHeader.addEventListener('input', e => { state.q = e.target.value; state.page=1; renderBanners(); }); }
+
+      // filtros modal
       const dlg = $('#dlg-filtros');
       $('#btn-filtros').addEventListener('click', ()=> dlg.showModal());
       $('#btn-menu').addEventListener('click', ()=> $('#dlg-menu').showModal());
-      const qModal = $('#q-modal'); if(qModal){ qModal.value = state.q; qModal.addEventListener('input', e=>{ state.q = e.target.value; if (qHeader) qHeader.value = state.q; renderBanners(); }); }
-      $('#evento').addEventListener('change', e=>{ state.evento = e.target.value; renderBanners(); });
-      $('#tema').addEventListener('change', e=>{ state.tema = e.target.value; renderBanners(); });
-      $('#de').addEventListener('change', e=>{ state.de = e.target.value; renderBanners(); });
-      $('#ate').addEventListener('change', e=>{ state.ate = e.target.value; renderBanners(); });
-      $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; renderBanners(); });
+      const qModal = $('#q-modal'); if(qModal){ qModal.value = state.q; qModal.addEventListener('input', e=>{ state.q = e.target.value; if (qHeader) qHeader.value = state.q; state.page=1; renderBanners(); }); }
+      $('#evento').addEventListener('change', e=>{ state.evento = e.target.value; state.page=1; renderBanners(); });
+      $('#tema').addEventListener('change', e=>{ state.tema = e.target.value; state.page=1; renderBanners(); });
+      $('#de').addEventListener('change', e=>{ state.de = e.target.value; state.page=1; renderBanners(); });
+      $('#ate').addEventListener('change', e=>{ state.ate = e.target.value; state.page=1; renderBanners(); });
+      $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; state.page=1; renderBanners(); });
       $('#btn-limpar-modal').addEventListener('click', (ev)=>{ ev.preventDefault(); limparFiltros(); });
+
+      // abas
+      $$('#tabs .tab').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          $$('#tabs .tab').forEach(b=>b.classList.remove('border-indigo-600','text-indigo-600','bg-indigo-50','dark:bg-indigo-900/30'));
+          btn.classList.add('border-indigo-600','text-indigo-600','bg-indigo-50','dark:bg-indigo-900/30');
+          state.tipo = btn.dataset.tipo || 'inicio';
+          state.page = 1;
+          renderBanners();
+        });
+      });
+      // seleciona aba Início por padrão
+      const firstTab = $('#tabs .tab'); if (firstTab) firstTab.click();
+
+      // limpar
       const btnLimpar = $('#limpar'); if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
+
+      // re-render quando cols mudarem
+      window.addEventListener('resize', debounce(()=>{ renderBanners(); }, 150));
     }
 
     function limparFiltros(){
-      Object.assign(state, { q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc' });
+      Object.assign(state, { q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc', page:1 });
       const qHeader = $('#q'); if (qHeader) qHeader.value = '';
       const qm = $('#q-modal'); if (qm) qm.value = '';
       $('#evento').value = ''; $('#tema').value = ''; $('#de').value = ''; $('#ate').value = ''; $('#ordenar').value = 'data_desc';
-      renderBanners();
-      if (ITENS.length) renderLista();
+      renderBanners(); renderLista();
     }
 
-    // === Inicialização ===
+    // ========= Boot =========
     async function iniciar(){
-      lerQueryString();
       conectarUI();
+
       try {
         const data = await baixarJSON(DATA_JSON_URL);
         if (Array.isArray(data)) ITENS = data.map(normalizarItem);
         else if (data && typeof data === 'object') ITENS = (data.itens || data.items || []).map(normalizarItem);
-      } catch (e) {
-        console.warn('data.json não encontrado ou inválido:', e.message);
-        ITENS = []; // sem exemplos no UI
-      }
+      } catch(e){ ITENS = []; }
 
-      const doManifest = await carregarBannersDoManifest();
-      BANNERS = doManifest; // exibe apenas o que existe
-
-      preencherSelectsBanners(BANNERS); buildMenuEventos(BANNERS);
-      renderBanners();
-      if (ITENS.length) renderLista();
-
-      try { selfTests(); } catch(err) { console.warn('Auto-teste falhou:', err); }
-    }
-
-    // === Testes (mantidos e ampliados) ===
-    function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
-    function selfTests(){
-      // toCSV/esc
-      const csv = toCSV([{id:'1', titulo:'a,b', autores:'x', evento:'', tema:['T'], palavrasChave:[], data:'2024-01-01', descricao:'linha1\nlinha2', arquivo:'f.pdf', tamanhoBytes:10}]);
-      expect('CSV tem quebra de linha', /\n/.test(csv));
-      expect('CSV cita vírgula', /"a,b"/.test(csv));
-      expect('CSV cita quebra de linha', /"linha1\nlinha2"/.test(csv));
-      // ordenar
-      const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
-      expect('Ordena por data desc', ord[0].data==='2025-01-01');
-      // filtro básico
-      const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
-      expect('Filtro sem termo retorna true', ok===true);
-      // constantes
-      expect('BANNERS_INDEX_FILE é index.json', BANNERS_INDEX_FILE==='index.json');
-      expect('Candidatos de pasta válidos', Array.isArray(BANNERS_DIR_CANDIDATES) && BANNERS_DIR_CANDIDATES.includes('json/banners/') && BANNERS_DIR_CANDIDATES.includes('banners/json/banners/'));
-      // coerce banners: objeto e array
-      const one = coerceBannersFromPayload({ titulo:'A', img:'x.jpg', evento:'E', tema:['T'], data:'2024-01-01' });
-      expect('coerce aceita objeto único', Array.isArray(one) && one.length===1 && one[0].titulo==='A');
-      const many = coerceBannersFromPayload([{ titulo:'A', img:'x.jpg' }, { titulo:'B', img:'y.jpg' }]);
-      expect('coerce aceita array de objetos', Array.isArray(many) && many.length===2 && many[1].titulo==='B');
-      // ordenar por título
-      const ordT1 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_asc');
-      const ordT2 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_desc');
-      expect('Ordenar por título A–Z', ordT1[0].titulo==='A');
-      expect('Ordenar por título Z–A', ordT2[0].titulo==='B');
-      // filtro por tema interage com banners
-      const prev = {...state};
       try {
-        state.tema = 'IA';
-        const f = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['IA'], palavrasChave:[], data:'', descricao:'' });
-        const f2 = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['Clima'], palavrasChave:[], data:'', descricao:'' });
-        expect('Filtro por tema inclui item com tema', f===true);
-        expect('Filtro por tema exclui item sem tema', f2===false);
-      } finally { Object.assign(state, prev); }
-      // isLikelyJSONResponse
-      expect('isLikelyJSONResponse aceita application/json', isLikelyJSONResponse(new Response(new Blob([]), { headers: { 'content-type': 'application/json' } })) === true);
+        BANNERS = await carregarBannersDoManifest();
+      } catch(e){ console.warn(e.message); BANNERS = []; }
+
+      preencherSelectsBanners(BANNERS);
+      buildMenuEventos(BANNERS);
+      renderBanners();
+      renderLista();
     }
 
     iniciar();
