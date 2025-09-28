@@ -22,7 +22,7 @@
   <!-- Header / Hero -->
   <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-neutral-900/70 border-b border-neutral-200/70 dark:border-neutral-800/80">
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
-      <button id="btn-menu" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Filtros">
+      <button id="btn-menu" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Eventos">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
       </button>
       <div class="flex items-center gap-3">
@@ -45,6 +45,20 @@
     </div>
   </header>
 
+  <!-- Drawer lateral de eventos -->
+  <dialog id="dlg-menu" class="p-0 w-full max-w-xs bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border-r border-neutral-200 dark:border-neutral-800 h-full fixed top-0 left-0">
+    <form method="dialog" class="h-full flex flex-col">
+      <header class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+        <strong>Eventos</strong>
+        <button class="rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800" value="close" aria-label="Fechar">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="p-2 overflow-y-auto" id="eventos-menu"></div>
+      <footer class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500">Clique em um evento para filtrar</footer>
+    </form>
+  </dialog>
+
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-8">
     <!-- Banners -->
     <section>
@@ -61,9 +75,13 @@
           <div class="p-4 space-y-2">
             <h3 class="font-semibold leading-tight line-clamp-2 titulo"></h3>
             <div class="text-sm text-neutral-600 dark:text-neutral-400 autores"></div>
+            <p class="text-sm text-neutral-700 dark:text-neutral-300 descricao"></p>
+            <div class="flex flex-wrap gap-1 tags"></div>
             <div class="flex flex-wrap gap-2 pt-1">
               <a class="btn-pdf inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm hover:bg-indigo-700" target="_blank" rel="noopener">PDF</a>
               <a class="btn-pptx inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" target="_blank" rel="noopener">PPTX</a>
+              <a class="btn-repo inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" target="_blank" rel="noopener">GitHub</a>
+              <a class="btn-dados inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" target="_blank" rel="noopener">Dados</a>
             </div>
           </div>
         </article>
@@ -253,8 +271,23 @@
     }
 
     function normalizarBanner(b) {
-      return { id: b.id || genId(), titulo: b.titulo || 'Banner', autores: b.autores || '', img: b.img || '', pdf: b.pdf || '', pptx: b.pptx || '' };
+      return {
+        id: b.id || genId(),
+        titulo: b.titulo || 'Banner',
+        autores: b.autores || '',
+        img: b.img || '',
+        pdf: b.pdf || '',
+        pptx: b.pptx || '',
+        // novos campos suportados
+        evento: b.evento || '',
+        tema: Array.isArray(b.tema) ? b.tema : (b.tema ? [b.tema] : []),
+        data: b.data || '',
+        descricao: b.descricao || '',
+        repo: b.repo || b.github || '',
+        dados: b.dados || b.dataUrl || ''
+      };
     }
+
 
     function coerceBannersFromPayload(payload){
       if (Array.isArray(payload)) return payload.map(normalizarBanner);
@@ -324,15 +357,30 @@
     let ITENS = []; // trabalhos (data.json)
     let BANNERS = []; // banners (manifesto)
 
-    function preencherSelects(items) {
-      const eventos = uniq(items.map(i => i.evento).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
-      const temas = uniq(items.flatMap(i => i.tema).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+    function preencherSelectsBanners(banners) {
+      const eventos = [...new Set(banners.map(b => b.evento).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+      const temas = [...new Set(banners.flatMap(b => b.tema).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
       const selEvento = $('#evento'); const selTema = $('#tema');
-      selEvento.length = 1; selTema.length = 1; // mantém "Todos"
-      for (const e of eventos) selEvento.add(new Option(e, e));
-      for (const t of temas) selTema.add(new Option(t, t));
-      if (state.evento) selEvento.value = state.evento;
-      if (state.tema) selTema.value = state.tema;
+      if (selEvento) { selEvento.length = 1; for (const e of eventos) selEvento.add(new Option(e, e)); if (state.evento) selEvento.value = state.evento; }
+      if (selTema) { selTema.length = 1; for (const t of temas) selTema.add(new Option(t, t)); if (state.tema) selTema.value = state.tema; }
+    }
+
+    function buildMenuEventos(banners){
+      const cont = $('#eventos-menu'); if (!cont) return;
+      cont.innerHTML = '';
+      const todos = document.createElement('button');
+      todos.type = 'button'; todos.className = 'w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800';
+      todos.textContent = 'Todos os eventos';
+      todos.addEventListener('click', ()=>{ state.evento=''; const sel=$('#evento'); if (sel) sel.value=''; renderBanners(); $('#dlg-menu').close(); });
+      cont.append(todos);
+      const eventos = [...new Set(banners.map(b => b.evento).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+      for (const e of eventos){
+        const btn = document.createElement('button');
+        btn.type='button'; btn.className='w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800';
+        btn.textContent = e;
+        btn.addEventListener('click', ()=>{ state.evento = e; const sel=$('#evento'); if (sel) sel.value=e; renderBanners(); $('#dlg-menu').close(); });
+        cont.append(btn);
+      }
     }
 
     function passaFiltro(i) {
@@ -374,10 +422,28 @@
     function renderBanners(){
       const cont = $('#banners'); cont.innerHTML = '';
       const tpl = $('#tpl-banner');
-      for (const b of BANNERS){
+      const filtrados = aplicarOrdenacao(BANNERS.filter(passaFiltro), state.ordenar);
+      for (const b of filtrados){
         const el = tpl.content.cloneNode(true);
         const imgEl = $('.banner-img', el);
         imgEl.src = b.img; imgEl.alt = `Prévia do banner: ${b.titulo}`;
+        imgEl.addEventListener('click', ()=> abrirImagem(b.img));
+        imgEl.addEventListener('error', ()=>{ imgEl.src='data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>imagem indisponível</text></svg>"'; });
+        $('.titulo', el).textContent = b.titulo;
+        $('.autores', el).textContent = b.autores || '';
+        $('.descricao', el).textContent = b.descricao || '';
+        const tags = $('.tags', el);
+        if (b.evento){ const t=document.createElement('span'); t.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; t.textContent=b.evento; tags.append(t); }
+        if (b.data){ const t=document.createElement('span'); t.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; t.textContent=b.data; tags.append(t); }
+        for (const tm of b.tema||[]){ const t=document.createElement('span'); t.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; t.textContent=tm; tags.append(t);}        
+        const btnPdf = $('.btn-pdf', el); const btnPptx = $('.btn-pptx', el); const btnRepo = $('.btn-repo', el); const btnDados = $('.btn-dados', el);
+        if (b.pdf) { btnPdf.href = b.pdf; } else { btnPdf.classList.add('opacity-50','pointer-events-none'); }
+        if (b.pptx) { btnPptx.href = b.pptx; } else { btnPptx.classList.add('opacity-50','pointer-events-none'); }
+        if (b.repo) { btnRepo.href = b.repo; } else { btnRepo.classList.add('opacity-50','pointer-events-none'); btnRepo.textContent='GitHub'; }
+        if (b.dados) { btnDados.href = b.dados; } else { btnDados.classList.add('opacity-50','pointer-events-none'); }
+        cont.append(el);
+      }
+    }`;
         imgEl.addEventListener('error', ()=>{ imgEl.src='data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>imagem indisponível</text></svg>"'; });
         $('.titulo', el).textContent = b.titulo;
         $('.autores', el).textContent = b.autores || '';
@@ -394,7 +460,19 @@
     // === UI ===
     function conectarUI(){
       const qHeader = $('#q');
-      if (qHeader){ qHeader.value = state.q; qHeader.addEventListener('input', e => { state.q = e.target.value; renderLista(); }); }
+      if (qHeader){ qHeader.value = state.q; qHeader.addEventListener('input', e => { state.q = e.target.value; renderBanners(); }); }
+      const dlg = $('#dlg-filtros');
+      $('#btn-filtros').addEventListener('click', ()=> dlg.showModal());
+      $('#btn-menu').addEventListener('click', ()=> $('#dlg-menu').showModal());
+      const qModal = $('#q-modal'); if(qModal){ qModal.value = state.q; qModal.addEventListener('input', e=>{ state.q = e.target.value; if (qHeader) qHeader.value = state.q; renderBanners(); }); }
+      $('#evento').addEventListener('change', e=>{ state.evento = e.target.value; renderBanners(); });
+      $('#tema').addEventListener('change', e=>{ state.tema = e.target.value; renderBanners(); });
+      $('#de').addEventListener('change', e=>{ state.de = e.target.value; renderBanners(); });
+      $('#ate').addEventListener('change', e=>{ state.ate = e.target.value; renderBanners(); });
+      $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; renderBanners(); });
+      $('#btn-limpar-modal').addEventListener('click', (ev)=>{ ev.preventDefault(); limparFiltros(); });
+      const btnLimpar = $('#limpar'); if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
+    }); }
       const dlg = $('#dlg-filtros');
       $('#btn-filtros').addEventListener('click', ()=> dlg.showModal());
       $('#btn-menu').addEventListener('click', ()=> dlg.showModal());
@@ -434,9 +512,10 @@
       const doManifest = await carregarBannersDoManifest();
       BANNERS = doManifest; // exibe apenas o que existe
 
-      preencherSelects(ITENS);
+      preencherSelectsBanners(BANNERS); buildMenuEventos(BANNERS);
       renderBanners();
-      renderLista();
+      // a lista de trabalhos via data.json é opcional; só renderiza se houver
+      if (ITENS.length) renderLista();
 
       try { selfTests(); } catch(err) { console.warn('Auto-teste falhou:', err); }
     }
@@ -445,7 +524,41 @@
     function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
     function selfTests(){
       // toCSV/esc
-      const csv = toCSV([{id:'1', titulo:'a,b', autores:'x', evento:'', tema:['T'], palavrasChave:[], data:'2024-01-01', descricao:'linha1\\nlinha2', arquivo:'f.pdf', tamanhoBytes:10}]);
+      const csv = toCSV([{id:'1', titulo:'a,b', autores:'x', evento:'', tema:['T'], palavrasChave:[], data:'2024-01-01', descricao:'linha1\nlinha2', arquivo:'f.pdf', tamanhoBytes:10}]);
+      expect('CSV tem quebra de linha', /
+/.test(csv));
+      expect('CSV cita vírgula', /"a,b"/.test(csv));
+      expect('CSV cita quebra de linha', /"linha1
+linha2"/.test(csv));
+      // ordenar
+      const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
+      expect('Ordena por data desc', ord[0].data==='2025-01-01');
+      // filtro básico
+      const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
+      expect('Filtro sem termo retorna true', ok===true);
+      // constantes
+      expect('BANNERS_INDEX_FILE é index.json', BANNERS_INDEX_FILE==='index.json');
+      expect('Candidatos de pasta válidos', Array.isArray(BANNERS_DIR_CANDIDATES));
+      // coerce banners: objeto e array
+      const one = coerceBannersFromPayload({ titulo:'A', img:'x.jpg', evento:'E', tema:['T'], data:'2024-01-01' });
+      expect('coerce aceita objeto único', Array.isArray(one) && one.length===1 && one[0].titulo==='A');
+      const many = coerceBannersFromPayload([{ titulo:'A', img:'x.jpg' }, { titulo:'B', img:'y.jpg' }]);
+      expect('coerce aceita array de objetos', Array.isArray(many) && many.length===2 && many[1].titulo==='B');
+      // ordenar por título
+      const ordT1 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_asc');
+      const ordT2 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_desc');
+      expect('Ordenar por título A–Z', ordT1[0].titulo==='A');
+      expect('Ordenar por título Z–A', ordT2[0].titulo==='B');
+      // filtro por tema interage com banners
+      const prev = {...state};
+      try {
+        state.tema = 'IA';
+        const f = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['IA'], palavrasChave:[], data:'', descricao:'' });
+        const f2 = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['Clima'], palavrasChave:[], data:'', descricao:'' });
+        expect('Filtro por tema inclui item com tema', f===true);
+        expect('Filtro por tema exclui item sem tema', f2===false);
+      } finally { Object.assign(state, prev); }
+    }]);
       expect('CSV tem quebra de linha', /\n/.test(csv));
       expect('CSV cita vírgula', /"a,b"/.test(csv));
       expect('CSV cita quebra de linha', /"linha1\nlinha2"/.test(csv));
