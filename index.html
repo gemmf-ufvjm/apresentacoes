@@ -52,6 +52,7 @@
     <section>
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-semibold">Banners</h2>
+        <button id="btn-debug" class="ml-auto text-xs underline text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300">Diagnóstico</button>
         <div class="flex items-center gap-2">
           <button id="add-banner" class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
             <span class="text-xl leading-none">+</span> Adicionar banner
@@ -63,6 +64,7 @@
       </div>
       <p class="text-xs text-neutral-500 dark:text-neutral-400 -mt-2 mb-2">Coloque arquivos <code>.json</code> na pasta <code>json/banners/</code> e liste-os em <code>json/banners/index.json</code>. Cada JSON descreve um banner.</p>
       <div id="banners" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <div id="debug" class="hidden text-xs mt-2 p-3 rounded-xl border border-amber-300/60 bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/60"></div>
       <template id="tpl-banner">
         <article class="group h-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
           <div class="aspect-[16/9] overflow-hidden bg-neutral-100 dark:bg-neutral-800 cursor-zoom-in">
@@ -279,16 +281,19 @@
     ];
 
     // Pasta de JSONs de banners (um arquivo .json por banner)
-    const BANNERS_DIR = 'json/banners/'; // coloque aqui seus .json de banner
+    const BANNERS_DIR = 'json/banners/'; // coloque aqui seus .json de banner (case-sensitive no GitHub)
     const BANNERS_INDEX = BANNERS_DIR + 'index.json'; // lista de arquivos JSON (manifest)
 
     // === Helpers ===
     const $ = (sel, el = document) => el.querySelector(sel);
     const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
+    const genId = () => (crypto && crypto.randomUUID ? crypto.randomUUID() : ('id-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)));
 
     function baixarJSON(url) {
-      return fetch(url, { cache: 'no-store' }).then(r => {
-        if (!r.ok) throw new Error('HTTP '+r.status+' em '+url);
+      // desabilita cache agressivo do Pages/CDN
+      const bust = (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+      return fetch(url + bust, { cache: 'no-store' }).then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status + ' em ' + url);
         return r.json();
       });
     }
@@ -312,7 +317,7 @@
 
     function normalizarItem(item) {
       return {
-        id: item.id || crypto.randomUUID(),
+        id: item.id || genId(),
         titulo: item.titulo || 'Sem título',
         autores: item.autores || '',
         evento: item.evento || '',
@@ -327,7 +332,7 @@
 
     function normalizarBanner(b) {
       return {
-        id: b.id || crypto.randomUUID(),
+        id: b.id || genId(),
         titulo: b.titulo || 'Banner',
         autores: b.autores || '',
         img: b.img || '',
@@ -338,17 +343,22 @@
 
     async function carregarBannersDoManifest(){
       try {
-        const idx = await baixarJSON(BANNERS_INDEX); // esperado: ["a.json","b.json",...]
-        if (!Array.isArray(idx) || !idx.length) return [];
-        const files = await Promise.all(
-          idx.map(async (name)=>{
-            try { const b = await baixarJSON(BANNERS_DIR + name); return normalizarBanner(b); }
-            catch(_e){ console.warn('Banner JSON inválido:', name, _e.message); return null; }
-          })
-        );
+        const idx = await baixarJSON(BANNERS_INDEX);
+        // Aceita formatos: ["a.json", ...] OU [{"file":"a.json"}, {"name":"b.json"}, {"path":"c.json"}]
+        let names = [];
+        if (Array.isArray(idx)) {
+          if (idx.length && typeof idx[0] === 'string') names = idx;
+          else if (idx.length && typeof idx[0] === 'object') names = idx.map(x => x.file || x.name || x.path).filter(Boolean);
+        }
+        if (!names.length) return [];
+        const files = await Promise.all(names.map(async (name)=>{
+          const url = BANNERS_DIR + name.replace(/^\/*/, '');
+          try { const b = await baixarJSON(url); return normalizarBanner(b); }
+          catch(_e){ console.warn('Banner JSON inválido:', name, _e.message); return null; }
+        }));
         return files.filter(Boolean);
       } catch(e){
-        console.warn('Sem manifest de banners, usando fallback', e.message);
+        console.warn('Sem/erro no manifest de banners, usando fallback', e.message);
         return FALLBACK_BANNERS.map(normalizarBanner);
       }
     }
@@ -370,16 +380,10 @@
       const esc = v => {
         if (Array.isArray(v)) v = v.join('|');
         v = (v ?? '').toString();
-        return /[",
-]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+        return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
       };
       const rows = items.map(it => cols.map(c => esc(it[c])).join(','));
-      return [head, ...rows].join('
-');
-    };
-      const rows = items.map(it => cols.map(c => esc(it[c])).join(','));
-      return [head, ...rows].join('
-');
+      return [head, ...rows].join('\n');
     }
 
     function download(filename, text) {
@@ -450,21 +454,28 @@
       const tpl = $('#tpl-banner');
       for (const b of BANNERS){
         const el = tpl.content.cloneNode(true);
-        $('.banner-img', el).src = b.img;
+        const imgEl = $('.banner-img', el);
+        imgEl.src = b.img; imgEl.alt = `Prévia do banner: ${b.titulo}`;
         $('.titulo', el).textContent = b.titulo;
         $('.autores', el).textContent = b.autores || '';
         const btnPdf = $('.btn-pdf', el); const btnPptx = $('.btn-pptx', el);
         if (b.pdf) { btnPdf.href = b.pdf; } else { btnPdf.classList.add('opacity-50','pointer-events-none'); }
         if (b.pptx) { btnPptx.href = b.pptx; } else { btnPptx.classList.add('opacity-50','pointer-events-none'); }
-        $('.banner-img', el).addEventListener('click', ()=> abrirImagem(b.img));
+        imgEl.addEventListener('click', ()=> abrirImagem(b.img));
         cont.append(el);
       }
+      // painel diagnóstico
+      const wasFallback = BANNERS.length && BANNERS[0].titulo && /Exemplo/.test(BANNERS[0].titulo);
+      const dbg = $('#debug');
+      dbg.innerHTML = `<div><strong>Manifesto:</strong> ${BANNERS_INDEX}</div><div><strong>Carregados:</strong> ${BANNERS.length} banner(s)</div>${wasFallback ? '<div><strong>Aviso:</strong> usando fallback (provável problema no index.json ou caminho dos arquivos).</div>' : ''}`;
     }
 
     function abrirImagem(src){ const dlg = $('#dlg-img'); $('#img-full').src = src; dlg.showModal(); }
 
     // === UI ===
     function conectarUI(){
+      // painel de diagnóstico
+      $('#btn-debug').addEventListener('click', ()=> $('#debug').classList.toggle('hidden'));
       // busca rápida (header)
       const qHeader = $('#q');
       if (qHeader){ qHeader.value = state.q; qHeader.addEventListener('input', e => { state.q = e.target.value; renderLista(); }); }
@@ -556,34 +567,37 @@
     function selfTests(){
       // toCSV/esc
       const csv = toCSV([{id:'1', titulo:'a,b', autores:'x', evento:'', tema:['T'], palavrasChave:[], data:'2024-01-01', descricao:'linha1\nlinha2', arquivo:'f.pdf', tamanhoBytes:10}]);
-      expect('CSV tem quebra de linha', /
-/.test(csv));
+      expect('CSV tem quebra de linha', /\n/.test(csv));
       expect('CSV cita vírgula', /"a,b"/.test(csv));
       expect('CSV cita quebra de linha', /"linha1\nlinha2"/.test(csv));
       // ordenar
       const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
       expect('Ordena por data desc', ord[0].data==='2025-01-01');
-      // filtro básico
+      // filtro básico (sem termo)
       const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
       expect('Filtro sem termo retorna true', ok===true);
       // banners manifest
       expect('Fallback banners tem ao menos 1', FALLBACK_BANNERS.length>=1);
       expect('Normalizar banner mantém campos centrais', !!normalizarBanner({titulo:'t', img:'u'}).img);
-    }]);
-      expect('CSV tem quebra de linha', /
-/.test(csv));
-      expect('CSV cita vírgula', /"a,b"/.test(csv));
-      expect('CSV cita quebra de linha', /"linha1
-linha2"/.test(csv));
-      // ordenar
-      const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
-      expect('Ordena por data desc', ord[0].data==='2025-01-01');
-      // filtro básico
-      const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
-      expect('Filtro sem termo retorna true', ok===true);
-      // banners manifest
-      expect('Fallback banners tem ao menos 1', FALLBACK_BANNERS.length>=1);
-      expect('Normalizar banner mantém campos centrais', !!normalizarBanner({titulo:'t', img:'u'}).img);
+      // testes adicionais
+      // 1) ordenar asc/desc por título
+      const ordT1 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_asc');
+      const ordT2 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_desc');
+      expect('Ordenar por título A–Z', ordT1[0].titulo==='A');
+      expect('Ordenar por título Z–A', ordT2[0].titulo==='B');
+      // 2) filtro por tema específico
+      const prev = {...state};
+      try {
+        state.tema = 'IA';
+        const f = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['IA'], palavrasChave:[], data:'', descricao:'' });
+        const f2 = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['Clima'], palavrasChave:[], data:'', descricao:'' });
+        expect('Filtro por tema inclui item com tema', f===true);
+        expect('Filtro por tema exclui item sem tema', f2===false);
+      } finally { Object.assign(state, prev); }
+      // 3) header do CSV
+      expect('CSV começa com cabeçalho id,', csv.startsWith('id,'));
+      // 4) constante do manifesto aponta para index.json
+      expect('BANNERS_INDEX termina com index.json', /index\.json$/.test(BANNERS_INDEX));
     }
 
     iniciar();
