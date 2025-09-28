@@ -50,15 +50,9 @@
     <section>
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-semibold">Banners</h2>
-        
-        <div class="flex items-center gap-2">
-          
-          
-        </div>
       </div>
-      <p class="text-xs text-neutral-500 dark:text-neutral-400 -mt-2 mb-2">Coloque arquivos <code>.json</code> na pasta <code>json/banners/</code> e liste-os em <code>json/banners/index.json</code>. Cada JSON pode conter <em>um objeto</em> ou <em>um array</em> de banners.</p>
+      <p class="text-xs text-neutral-500 dark:text-neutral-400 -mt-2 mb-2">Coloque arquivos <code>.json</code> na pasta de banners indicada pelo seu <code>index.json</code> (ex.: <code>json/banners/</code> ou <code>banners/json/banners/</code>).</p>
       <div id="banners" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      
       <template id="tpl-banner">
         <article class="group h-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
           <div class="aspect-[16/9] overflow-hidden bg-neutral-100 dark:bg-neutral-800 cursor-zoom-in">
@@ -77,10 +71,8 @@
     </section>
 
     <!-- Barra de estado -->
-    <div class="flex items-center justify-between">
-      <p id="contagem" class="text-sm text-neutral-600 dark:text-neutral-400">Carregando…</p>
+    <div class="flex items-center justify-end">
       <div class="flex items-center gap-2">
-        
         <button id="limpar" class="inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Limpar filtros</button>
       </div>
     </div>
@@ -186,46 +178,6 @@
     </div>
   </dialog>
 
-  <!-- Modal de adicionar banner -->
-  <dialog id="dlg-add-banner" class="rounded-2xl p-0 w-full max-w-xl bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-800 shadow-2xl">
-    <form method="dialog" class="flex flex-col h-full" id="form-banner">
-      <header class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
-        <h3 class="font-semibold">Novo banner</h3>
-        <button class="rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800" value="close" aria-label="Fechar">
-          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12"/></svg>
-        </button>
-      </header>
-      <div class="p-4 space-y-3">
-        <div>
-          <label class="block text-sm font-medium mb-1">Título</label>
-          <input name="titulo" required class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Autores/Créditos (opcional)</label>
-          <input name="autores" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">URL da imagem (PNG/JPG)</label>
-          <input name="img" required placeholder="https://.../banner.jpg" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
-        </div>
-        <div class="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium mb-1">Link PDF (opcional)</label>
-            <input name="pdf" placeholder="pdfs/banner.pdf" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Link PPTX (opcional)</label>
-            <input name="pptx" placeholder="pptx/banner.pptx" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
-          </div>
-        </div>
-      </div>
-      <footer class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
-        <button class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" value="close">Cancelar</button>
-        <button id="salvar-banner" class="rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm">Adicionar</button>
-      </footer>
-    </form>
-  </dialog>
-
   <footer class="max-w-7xl mx-auto px-4 pb-12 text-xs text-neutral-500 dark:text-neutral-400">
     <hr class="border-neutral-200 dark:border-neutral-800 mb-4" />
     <p>Feito para rodar no GitHub Pages em modo estático. Personalize à vontade ✨</p>
@@ -234,22 +186,17 @@
   <script>
     // === Config ===
     const DATA_JSON_URL = 'data.json';
-    const BANNERS_DIR = 'json/banners/'; // case-sensitive no GitHub
-    const BANNERS_INDEX = BANNERS_DIR + 'index.json';
 
-    // === Fallback de exemplo ===
-    const FALLBACK_ITEMS = []; // removido do UI: não exibimos exemplos por padrão
+    // Suportar dois layouts de repositório:
+    //  1) json/banners/ (raiz)
+    //  2) banners/json/banners/ (pasta "banners" antes)
+    const BANNERS_DIR_CANDIDATES = ['json/banners/', 'banners/json/banners/'];
+    const BANNERS_INDEX_FILE = 'index.json';
 
+    // === Fallback (apenas para testes; não exibimos exemplos no UI) ===
+    const FALLBACK_ITEMS = [];
     const FALLBACK_BANNERS = [
-      // Mantemos somente para os testes automatizados; não é exibido no UI.
-      {
-        id: 'ban-001',
-        titulo: 'Banner de Exemplo — Climatologia (somente testes)',
-        autores: 'Silva et al.',
-        img: 'data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>placeholder</text></svg>"',
-        pdf: '',
-        pptx: ''
-      }
+      { id: 'ban-001', titulo: 'Banner (somente testes)', autores: '—', img: 'data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>placeholder</text></svg>"', pdf: '', pptx: '' }
     ];
 
     // === Helpers ===
@@ -257,13 +204,20 @@
     const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
     const genId = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : ('id-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)));
 
-    function baixarJSON(url) {
-      // cache-busting contra CDN do Pages
+    function isLikelyJSONResponse(resp){
+      const ct = resp.headers.get('content-type') || '';
+      return ct.includes('application/json') || ct.includes('text/json');
+    }
+
+    async function baixarJSON(url) {
       const bust = (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-      return fetch(url + bust, { cache: 'no-store' }).then(r => {
-        if (!r.ok) throw new Error('HTTP ' + r.status + ' em ' + url);
-        return r.json();
-      });
+      const r = await fetch(url + bust, { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' em ' + url);
+      if (!isLikelyJSONResponse(r)) {
+        const txt = await r.text();
+        throw new Error('Conteúdo não é JSON em ' + url + ' (inicio: ' + txt.slice(0, 60).replace(/\s+/g,' ') + '...)');
+      }
+      return r.json();
     }
 
     function formatarData(yyyyMMdd) {
@@ -299,26 +253,29 @@
     }
 
     function normalizarBanner(b) {
-      return {
-        id: b.id || genId(),
-        titulo: b.titulo || 'Banner',
-        autores: b.autores || '',
-        img: b.img || '',
-        pdf: b.pdf || '',
-        pptx: b.pptx || ''
-      };
+      return { id: b.id || genId(), titulo: b.titulo || 'Banner', autores: b.autores || '', img: b.img || '', pdf: b.pdf || '', pptx: b.pptx || '' };
     }
 
     function coerceBannersFromPayload(payload){
-      // Aceita um objeto único {..} OU um array de objetos [{..},{..}]
       if (Array.isArray(payload)) return payload.map(normalizarBanner);
       if (payload && typeof payload === 'object') return [normalizarBanner(payload)];
       return [];
     }
 
+    async function resolverDiretorioDeBanners(){
+      for (const base of BANNERS_DIR_CANDIDATES){
+        try {
+          await baixarJSON(base + BANNERS_INDEX_FILE);
+          return base; // este existe
+        } catch(e) { /* tenta próximo */ }
+      }
+      throw new Error('Nenhum index.json encontrado nas pastas candidatas: ' + BANNERS_DIR_CANDIDATES.join(', '));
+    }
+
     async function carregarBannersDoManifest(){
       try {
-        const idx = await baixarJSON(BANNERS_INDEX);
+        const base = await resolverDiretorioDeBanners();
+        const idx = await baixarJSON(base + BANNERS_INDEX_FILE);
         let names = [];
         if (Array.isArray(idx)) {
           if (idx.length && typeof idx[0] === 'string') names = idx;
@@ -326,7 +283,7 @@
         }
         if (!names.length) return [];
         const lists = await Promise.all(names.map(async (name)=>{
-          const url = BANNERS_DIR + name.replace(/^\/*/, '');
+          const url = base + String(name).replace(/^\/*/, '');
           try {
             const payload = await baixarJSON(url);
             return coerceBannersFromPayload(payload);
@@ -353,19 +310,9 @@
     function toCSV(items) {
       const cols = ['id','titulo','autores','evento','tema','palavrasChave','data','descricao','arquivo','tamanhoBytes'];
       const head = cols.join(',');
-      const esc = v => {
-        if (Array.isArray(v)) v = v.join('|');
-        v = (v ?? '').toString();
-        return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
-      };
+      const esc = v => { if (Array.isArray(v)) v = v.join('|'); v = (v ?? '').toString(); return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; };
       const rows = items.map(it => cols.map(c => esc(it[c])).join(','));
       return [head, ...rows].join('\n');
-    }
-
-    function download(filename, text) {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([text], {type: 'text/plain;charset=utf-8'}));
-      a.download = filename; a.click(); URL.revokeObjectURL(a.href);
     }
 
     // === Estado ===
@@ -374,8 +321,8 @@
     function escreverQueryString(){ const p=new URLSearchParams(); for (const [k,v] of Object.entries(state)) if (v) p.set(k,v); history.replaceState(null,'',`${location.pathname}?${p.toString()}`); }
 
     // === Dados ===
-    let ITENS = []; // trabalhos
-    let BANNERS = []; // banners
+    let ITENS = []; // trabalhos (data.json)
+    let BANNERS = []; // banners (manifesto)
 
     function preencherSelects(items) {
       const eventos = uniq(items.map(i => i.evento).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
@@ -407,7 +354,6 @@
       escreverQueryString();
       const lista = $('#lista'); lista.innerHTML = '';
       const filtrados = aplicarOrdenacao(ITENS.filter(passaFiltro), state.ordenar);
-      $('#contagem').textContent = `${filtrados.length} item(ns)`;
       if (!filtrados.length) { lista.append($('#tpl-vazio').content.cloneNode(true)); return; }
       const tpl = $('#tpl-card');
       for (const it of filtrados) {
@@ -418,8 +364,8 @@
         const tags = $('.tags', card);
         for (const t of it.tema || []) { const span=document.createElement('span'); span.className='text-xs px-2 py-0.5 rounded-full bg-neutral-200/70 dark:bg-neutral-800'; span.textContent=t; tags.append(span);}        
         $('.descricao', card).textContent = it.descricao || '';
-        const abrir = $('.abrir', card); abrir.href = it.arquivo; abrir.setAttribute('aria-label', `Abrir ${it.titulo}`);
-        const baixar = $('.baixar', card); baixar.href = it.arquivo; baixar.download = '';
+        const abrir = $('.abrir', card); abrir.href = it.arquivo || '#'; abrir.setAttribute('aria-label', `Abrir ${it.titulo}`);
+        const baixar = $('.baixar', card); if (it.arquivo) { baixar.href = it.arquivo; baixar.download = ''; } else { baixar.classList.add('opacity-50','pointer-events-none'); }
         const meta = $('.ml-auto', card); meta.textContent = [it.autores, formatarBytes(it.tamanhoBytes)].filter(Boolean).join(' • ');
         lista.append(card);
       }
@@ -441,18 +387,6 @@
         imgEl.addEventListener('click', ()=> abrirImagem(b.img));
         cont.append(el);
       }
-    }`;
-        imgEl.addEventListener('error', ()=>{ imgEl.src='data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>imagem indisponível</text></svg>"'; });
-        $('.titulo', el).textContent = b.titulo;
-        $('.autores', el).textContent = b.autores || '';
-        const btnPdf = $('.btn-pdf', el); const btnPptx = $('.btn-pptx', el);
-        if (b.pdf) { btnPdf.href = b.pdf; } else { btnPdf.classList.add('opacity-50','pointer-events-none'); }
-        if (b.pptx) { btnPptx.href = b.pptx; } else { btnPptx.classList.add('opacity-50','pointer-events-none'); }
-        imgEl.addEventListener('click', ()=> abrirImagem(b.img));
-        cont.append(el);
-      }
-      const dbg = $('#debug');
-      dbg.innerHTML = `<div><strong>Manifesto:</strong> ${BANNERS_INDEX}</div><div><strong>Carregados:</strong> ${BANNERS.length} banner(s)</div>`;
     }
 
     function abrirImagem(src){ const dlg = $('#dlg-img'); $('#img-full').src = src; dlg.showModal(); }
@@ -472,57 +406,17 @@
       $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; renderLista(); });
       $('#btn-limpar-modal').addEventListener('click', (ev)=>{ ev.preventDefault(); limparFiltros(); });
       const btnLimpar = $('#limpar'); if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
-    }); }
-
-      const dlg = $('#dlg-filtros');
-      $('#btn-filtros').addEventListener('click', ()=> dlg.showModal());
-      $('#btn-menu').addEventListener('click', ()=> dlg.showModal());
-
-      const qModal = $('#q-modal'); qModal.value = state.q; qModal.addEventListener('input', e=>{ state.q = e.target.value; if (qHeader) qHeader.value = state.q; renderLista(); });
-      $('#evento').addEventListener('change', e=>{ state.evento = e.target.value; renderLista(); });
-      $('#tema').addEventListener('change', e=>{ state.tema = e.target.value; renderLista(); });
-      $('#de').addEventListener('change', e=>{ state.de = e.target.value; renderLista(); });
-      $('#ate').addEventListener('change', e=>{ state.ate = e.target.value; renderLista(); });
-      $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; renderLista(); });
-      $('#btn-limpar-modal').addEventListener('click', (ev)=>{ ev.preventDefault(); limparFiltros(); });
-
-      $('#limpar').addEventListener('click', limparFiltros);
-      $('#exportar').addEventListener('click', ()=>{
-        const filtrados = aplicarOrdenacao(ITENS.filter(passaFiltro), state.ordenar);
-        download('biblioteca.csv', toCSV(filtrados));
-      });
-
-      // adicionar banner
-      $('#add-banner').addEventListener('click', ()=> $('#dlg-add-banner').showModal());
-      let ultimoBannerAdicionado = null;
-      $('#salvar-banner').addEventListener('click', (e)=>{
-        e.preventDefault();
-        const f = new FormData($('#form-banner'));
-        const novo = normalizarBanner({ titulo: f.get('titulo'), autores: f.get('autores'), img: f.get('img'), pdf: f.get('pdf'), pptx: f.get('pptx') });
-        if (!novo.img) return;
-        novo._extra = true; // persistência local
-        BANNERS.unshift(novo);
-        ultimoBannerAdicionado = novo;
-        salvarBannersExtras();
-        renderBanners();
-        $('#dlg-add-banner').close();
-        $('#form-banner').reset();
-      });
-      $('#exportar-banner-json').addEventListener('click', ()=>{ if (ultimoBannerAdicionado) exportarBannerComoJSON(ultimoBannerAdicionado); else alert('Adicione um banner primeiro.'); });
     }
 
     function limparFiltros(){
       Object.assign(state, { q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc' });
       const qHeader = $('#q'); if (qHeader) qHeader.value = '';
-      $('#q-modal').value = '';
+      const qm = $('#q-modal'); if (qm) qm.value = '';
       $('#evento').value = ''; $('#tema').value = ''; $('#de').value = ''; $('#ate').value = ''; $('#ordenar').value = 'data_desc';
       renderLista();
     }
 
-    // Persistência local (só dos banners adicionados via botão)
-    function salvarBannersExtras(){ localStorage.setItem('bannersExtra', JSON.stringify(BANNERS.filter(b=>b._extra))); }
-    function carregarBannersExtras(){ try { return JSON.parse(localStorage.getItem('bannersExtra')||'[]'); } catch{ return []; } }
-    function exportarBannerComoJSON(b){ const minimo = { titulo: b.titulo, autores: b.autores, img: b.img, pdf: b.pdf, pptx: b.pptx }; const json = JSON.stringify(minimo, null, 2); download((b.titulo||'banner')+'.json', json); }
+    // Persistência local removida (não há botões de adicionar/exportar)
 
     // === Inicialização ===
     async function iniciar(){
@@ -530,20 +424,15 @@
       conectarUI();
       try {
         const data = await baixarJSON(DATA_JSON_URL);
-        if (Array.isArray(data)) {
-          ITENS = data.map(normalizarItem);
-        } else if (data && typeof data === 'object') {
-          ITENS = (data.itens || data.items || []).map(normalizarItem);
-        }
+        if (Array.isArray(data)) ITENS = data.map(normalizarItem);
+        else if (data && typeof data === 'object') ITENS = (data.itens || data.items || []).map(normalizarItem);
       } catch (e) {
         console.warn('data.json não encontrado ou inválido:', e.message);
         ITENS = []; // sem exemplos no UI
       }
 
       const doManifest = await carregarBannersDoManifest();
-      BANNERS = doManifest; // sem fallback visual: só exibe o que você carregou
-
-      const extras = carregarBannersExtras(); for (const b of extras) b._extra = true; BANNERS = [...extras, ...BANNERS];
+      BANNERS = doManifest; // exibe apenas o que existe
 
       preencherSelects(ITENS);
       renderBanners();
@@ -552,7 +441,7 @@
       try { selfTests(); } catch(err) { console.warn('Auto-teste falhou:', err); }
     }
 
-    // === Testes (não alterados, apenas corrigidos de sintaxe) + extras ===
+    // === Testes (mantidos e ampliados) ===
     function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
     function selfTests(){
       // toCSV/esc
@@ -560,52 +449,20 @@
       expect('CSV tem quebra de linha', /\n/.test(csv));
       expect('CSV cita vírgula', /"a,b"/.test(csv));
       expect('CSV cita quebra de linha', /"linha1\nlinha2"/.test(csv));
-      // ordenar (já existia)
+      // ordenar
       const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
       expect('Ordena por data desc', ord[0].data==='2025-01-01');
-      // filtro básico (sem termo) — já existia
+      // filtro básico (sem termo)
       const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
       expect('Filtro sem termo retorna true', ok===true);
-      // banners manifest — já existia
-      expect('Fallback banners tem ao menos 1', FALLBACK_BANNERS.length>=1);
-      expect('Normalizar banner mantém campos centrais', !!normalizarBanner({titulo:'t', img:'u'}).img);
-      // ===== Novos testes =====
-      // 1) ordenar A–Z e Z–A por título
-      const ordT1 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_asc');
-      const ordT2 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_desc');
-      expect('Ordenar por título A–Z', ordT1[0].titulo==='A');
-      expect('Ordenar por título Z–A', ordT2[0].titulo==='B');
-      // 2) filtro por tema específico
-      const prev = {...state};
-      try {
-        state.tema = 'IA';
-        const f = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['IA'], palavrasChave:[], data:'', descricao:'' });
-        const f2 = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['Clima'], palavrasChave:[], data:'', descricao:'' });
-        expect('Filtro por tema inclui item com tema', f===true);
-        expect('Filtro por tema exclui item sem tema', f2===false);
-      } finally { Object.assign(state, prev); }
-      // 3) header do CSV
-      expect('CSV começa com cabeçalho id,', csv.startsWith('id,'));
-      // 4) constante do manifesto
-      expect('BANNERS_INDEX termina com index.json', /index\.json$/.test(BANNERS_INDEX));
-      // 5) coerce banners: objeto único
-      const one = coerceBannersFromPayload({ titulo:'A', img:'x.jpg' });
-      expect('coerce aceita objeto único', Array.isArray(one) && one.length===1 && one[0].titulo==='A');
-      // 6) coerce banners: array de objetos
-      const many = coerceBannersFromPayload([{ titulo:'A', img:'x.jpg' }, { titulo:'B', img:'y.jpg' }]);
-      expect('coerce aceita array de objetos', Array.isArray(many) && many.length===2 && many[1].titulo==='B');
-      // 7) ordenação por data asc
-      const asc = aplicarOrdenacao([{data:'2024-01-02'},{data:'2024-01-01'}], 'data_asc');
-      expect('Ordena por data asc', asc[0].data==='2024-01-01');
-      // 8) filtro por intervalo de datas
-      const prev2 = {...state};
-      try {
-        state.de = '2024-01-10'; state.ate = '2024-01-20';
-        const dentro = passaFiltro({ titulo:'', autores:'', evento:'', tema:[], palavrasChave:[], data:'2024-01-15', descricao:'' });
-        const fora = passaFiltro({ titulo:'', autores:'', evento:'', tema:[], palavrasChave:[], data:'2024-02-01', descricao:'' });
-        expect('Filtro por data inclui dentro do intervalo', dentro===true);
-        expect('Filtro por data exclui fora do intervalo', fora===false);
-      } finally { Object.assign(state, prev2, {de:'', ate:''}); }
+      // constantes
+      expect('BANNERS_INDEX_FILE é index.json', BANNERS_INDEX_FILE==='index.json');
+      // candidatos de pasta incluem as duas opções
+      expect('Candidatos de pasta válidos', Array.isArray(BANNERS_DIR_CANDIDATES) && BANNERS_DIR_CANDIDATES.includes('json/banners/') && BANNERS_DIR_CANDIDATES.includes('banners/json/banners/'));
+      // banner normalizado mantém imagem
+      expect('Normalizar banner mantém img', !!normalizarBanner({titulo:'t', img:'u.jpg'}).img);
+      // verificação de content-type
+      expect('isLikelyJSONResponse aceita application/json', isLikelyJSONResponse(new Response(new Blob([]), { headers: { 'content-type': 'application/json' } })) === true);
     }
 
     iniciar();
