@@ -341,10 +341,37 @@
       };
     }
 
+    function coerceBannersFromPayload(payload){
+      // Aceita um objeto único {..} OU um array de objetos [{..},{..}]
+      if (Array.isArray(payload)) return payload.map(normalizarBanner);
+      if (payload && typeof payload === 'object') return [normalizarBanner(payload)];
+      return [];
+    }
+
+
     async function carregarBannersDoManifest(){
       try {
         const idx = await baixarJSON(BANNERS_INDEX);
         // Aceita formatos: ["a.json", ...] OU [{"file":"a.json"}, {"name":"b.json"}, {"path":"c.json"}]
+        let names = [];
+        if (Array.isArray(idx)) {
+          if (idx.length && typeof idx[0] === 'string') names = idx;
+          else if (idx.length && typeof idx[0] === 'object') names = idx.map(x => x.file || x.name || x.path).filter(Boolean);
+        }
+        if (!names.length) return [];
+        const lists = await Promise.all(names.map(async (name)=>{
+          const url = BANNERS_DIR + name.replace(/^\/*/, '');
+          try {
+            const payload = await baixarJSON(url);
+            return coerceBannersFromPayload(payload);
+          } catch(_e){ console.warn('Banner JSON inválido:', name, _e.message); return []; }
+        }));
+        return lists.flat().filter(Boolean);
+      } catch(e){
+        console.warn('Sem/erro no manifest de banners, usando fallback', e.message);
+        return FALLBACK_BANNERS.map(normalizarBanner);
+      }
+    }, {"name":"b.json"}, {"path":"c.json"}]
         let names = [];
         if (Array.isArray(idx)) {
           if (idx.length && typeof idx[0] === 'string') names = idx;
@@ -566,7 +593,48 @@
     function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
     function selfTests(){
       // toCSV/esc
-      const csv = toCSV([{id:'1', titulo:'a,b', autores:'x', evento:'', tema:['T'], palavrasChave:[], data:'2024-01-01', descricao:'linha1\nlinha2', arquivo:'f.pdf', tamanhoBytes:10}]);
+      const csv = toCSV([{id:'1', titulo:'a,b', autores:'x', evento:'', tema:['T'], palavrasChave:[], data:'2024-01-01', descricao:'linha1
+linha2', arquivo:'f.pdf', tamanhoBytes:10}]);
+      expect('CSV tem quebra de linha', /
+/.test(csv));
+      expect('CSV cita vírgula', /"a,b"/.test(csv));
+      expect('CSV cita quebra de linha', /"linha1
+linha2"/.test(csv));
+      // ordenar
+      const ord = aplicarOrdenacao([{data:'2024-01-01', titulo:'B'},{data:'2025-01-01', titulo:'A'}], 'data_desc');
+      expect('Ordena por data desc', ord[0].data==='2025-01-01');
+      // filtro básico (sem termo)
+      const ok = passaFiltro({ titulo:'ABC', autores:'', evento:'', tema:[], palavrasChave:[], data:'', descricao:'' });
+      expect('Filtro sem termo retorna true', ok===true);
+      // banners manifest
+      expect('Fallback banners tem ao menos 1', FALLBACK_BANNERS.length>=1);
+      expect('Normalizar banner mantém campos centrais', !!normalizarBanner({titulo:'t', img:'u'}).img);
+      // testes adicionais
+      // 1) ordenar asc/desc por título
+      const ordT1 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_asc');
+      const ordT2 = aplicarOrdenacao([{titulo:'B'},{titulo:'A'}], 'titulo_desc');
+      expect('Ordenar por título A–Z', ordT1[0].titulo==='A');
+      expect('Ordenar por título Z–A', ordT2[0].titulo==='B');
+      // 2) filtro por tema específico
+      const prev = {...state};
+      try {
+        state.tema = 'IA';
+        const f = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['IA'], palavrasChave:[], data:'', descricao:'' });
+        const f2 = passaFiltro({ titulo:'x', autores:'', evento:'', tema:['Clima'], palavrasChave:[], data:'', descricao:'' });
+        expect('Filtro por tema inclui item com tema', f===true);
+        expect('Filtro por tema exclui item sem tema', f2===false);
+      } finally { Object.assign(state, prev); }
+      // 3) header do CSV
+      expect('CSV começa com cabeçalho id,', csv.startsWith('id,'));
+      // 4) constante do manifesto aponta para index.json
+      expect('BANNERS_INDEX termina com index.json', /index\.json$/.test(BANNERS_INDEX));
+      // 5) coerce banners: objeto único
+      const one = coerceBannersFromPayload({ titulo:'A', img:'x.jpg' });
+      expect('coerce aceita objeto único', Array.isArray(one) && one.length===1 && one[0].titulo==='A');
+      // 6) coerce banners: array de objetos
+      const many = coerceBannersFromPayload([{ titulo:'A', img:'x.jpg' }, { titulo:'B', img:'y.jpg' }]);
+      expect('coerce aceita array de objetos', Array.isArray(many) && many.length===2 && many[1].titulo==='B');
+    }]);
       expect('CSV tem quebra de linha', /\n/.test(csv));
       expect('CSV cita vírgula', /"a,b"/.test(csv));
       expect('CSV cita quebra de linha', /"linha1\nlinha2"/.test(csv));
