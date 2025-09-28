@@ -8,7 +8,7 @@
     "descricao": "Resultados preliminares de gradientes do dossel com LiDAR aéreo.",
     "img": "assets/mensuflor_2025/gustavo_2.jpg",
     "pdf": "assets/mensuflor_2025/gustavo_2.pdf",
-    "pptx": "assets/mensuflor_2025/gustavo_2.pptx"
+    "pptx": "assets/mensuflor_2025/gustavo_2.pptx",
     "repo": "https://github.com/SEU_USER/SEU_REPO",
     "dados": "https://drive.google.com/SEU_LINK_DE_DADOS"
   },
@@ -21,7 +21,7 @@
     "descricao": "Comparação entre abordagens.",
     "img": "assets/mensuflor_2025/gustavo_2.jpg",
     "pdf": "assets/mensuflor_2025/gustavo_2.pdf",
-    "pptx": "assets/mensuflor_2025/gustavo_2.pptx"
+    "pptx": "assets/mensuflor_2025/gustavo_2.pptx",
     "github": "https://github.com/SEU_USER/OUTRO_REPO"
   }
 ]
