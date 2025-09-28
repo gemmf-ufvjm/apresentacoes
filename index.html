@@ -564,9 +564,6 @@
     }
 
     // ========= Boot =========
-    let BANNERS = [];
-    let ITENS = [];
-
     async function iniciar(){
       conectarUI();
 
@@ -584,8 +581,24 @@
       buildMenuEventos(BANNERS);
       renderBanners();
       renderLista();
+
+      // auto-testes leves (não quebram a UI)
+      try { runSelfTests(); } catch (err) { console.warn('Auto-testes:', err.message); }
     }
     iniciar();
+
+    // ========= Testes simples =========
+    function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
+    function runSelfTests(){
+      expect('BANNERS é array', Array.isArray(BANNERS));
+      const b = normalizarBanner({ titulo:'t', img:'x.jpg' });
+      expect('categoria default é inicio', b.categoria === 'inicio');
+      const prev = { ...state };
+      state.categoria = '3p';
+      expect('Filtro por categoria exclui outras', passaFiltro({ titulo:'', autores:'', evento:'', tema:[], data:'', descricao:'', categoria:'aulas' }) === false);
+      state.categoria = prev.categoria;
+      expect('Page size >= 1', getPageSize() >= 1);
+    }
   </script>
 </body>
 </html>
