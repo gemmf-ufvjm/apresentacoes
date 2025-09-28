@@ -50,19 +50,15 @@
     <section>
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-semibold">Banners</h2>
-        <button id="btn-debug" class="ml-auto text-xs underline text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300">Diagnóstico</button>
+        
         <div class="flex items-center gap-2">
-          <button id="add-banner" class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
-            <span class="text-xl leading-none">+</span> Adicionar banner
-          </button>
-          <button id="exportar-banner-json" class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Exportar último banner adicionado como JSON">
-            Exportar banner (JSON)
-          </button>
+          
+          
         </div>
       </div>
       <p class="text-xs text-neutral-500 dark:text-neutral-400 -mt-2 mb-2">Coloque arquivos <code>.json</code> na pasta <code>json/banners/</code> e liste-os em <code>json/banners/index.json</code>. Cada JSON pode conter <em>um objeto</em> ou <em>um array</em> de banners.</p>
       <div id="banners" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      <div id="debug" class="hidden text-xs mt-2 p-3 rounded-xl border border-amber-300/60 bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-700/60"></div>
+      
       <template id="tpl-banner">
         <article class="group h-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
           <div class="aspect-[16/9] overflow-hidden bg-neutral-100 dark:bg-neutral-800 cursor-zoom-in">
@@ -84,7 +80,7 @@
     <div class="flex items-center justify-between">
       <p id="contagem" class="text-sm text-neutral-600 dark:text-neutral-400">Carregando…</p>
       <div class="flex items-center gap-2">
-        <button id="exportar" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm hover:bg-indigo-700">Exportar CSV</button>
+        
         <button id="limpar" class="inline-flex items-center justify-center rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Limpar filtros</button>
       </div>
     </div>
@@ -341,25 +337,6 @@
         console.warn('Erro ao carregar manifesto de banners:', e.message);
         return [];
       }
-    }, {"name":"b.json"}, {"path":"c.json"}]
-        let names = [];
-        if (Array.isArray(idx)) {
-          if (idx.length && typeof idx[0] === 'string') names = idx;
-          else if (idx.length && typeof idx[0] === 'object') names = idx.map(x => x.file || x.name || x.path).filter(Boolean);
-        }
-        if (!names.length) return [];
-        const lists = await Promise.all(names.map(async (name)=>{
-          const url = BANNERS_DIR + name.replace(/^\/*/, '');
-          try {
-            const payload = await baixarJSON(url);
-            return coerceBannersFromPayload(payload);
-          } catch(_e){ console.warn('Banner JSON inválido:', name, _e.message); return []; }
-        }));
-        return lists.flat().filter(Boolean);
-      } catch(e){
-        console.warn('Sem/erro no manifest de banners, usando fallback', e.message);
-        return FALLBACK_BANNERS.map(normalizarBanner);
-      }
     }
 
     function aplicarOrdenacao(items, ordem) {
@@ -464,6 +441,16 @@
         imgEl.addEventListener('click', ()=> abrirImagem(b.img));
         cont.append(el);
       }
+    }`;
+        imgEl.addEventListener('error', ()=>{ imgEl.src='data:image/svg+xml,"<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'450\'><rect width=\'100%\' height=\'100%\' fill=\'#eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'#999\' font-family=\'sans-serif\' font-size=\'20\'>imagem indisponível</text></svg>"'; });
+        $('.titulo', el).textContent = b.titulo;
+        $('.autores', el).textContent = b.autores || '';
+        const btnPdf = $('.btn-pdf', el); const btnPptx = $('.btn-pptx', el);
+        if (b.pdf) { btnPdf.href = b.pdf; } else { btnPdf.classList.add('opacity-50','pointer-events-none'); }
+        if (b.pptx) { btnPptx.href = b.pptx; } else { btnPptx.classList.add('opacity-50','pointer-events-none'); }
+        imgEl.addEventListener('click', ()=> abrirImagem(b.img));
+        cont.append(el);
+      }
       const dbg = $('#debug');
       dbg.innerHTML = `<div><strong>Manifesto:</strong> ${BANNERS_INDEX}</div><div><strong>Carregados:</strong> ${BANNERS.length} banner(s)</div>`;
     }
@@ -472,9 +459,20 @@
 
     // === UI ===
     function conectarUI(){
-      $('#btn-debug').addEventListener('click', ()=> $('#debug').classList.toggle('hidden'));
       const qHeader = $('#q');
       if (qHeader){ qHeader.value = state.q; qHeader.addEventListener('input', e => { state.q = e.target.value; renderLista(); }); }
+      const dlg = $('#dlg-filtros');
+      $('#btn-filtros').addEventListener('click', ()=> dlg.showModal());
+      $('#btn-menu').addEventListener('click', ()=> dlg.showModal());
+      const qModal = $('#q-modal'); qModal.value = state.q; qModal.addEventListener('input', e=>{ state.q = e.target.value; if (qHeader) qHeader.value = state.q; renderLista(); });
+      $('#evento').addEventListener('change', e=>{ state.evento = e.target.value; renderLista(); });
+      $('#tema').addEventListener('change', e=>{ state.tema = e.target.value; renderLista(); });
+      $('#de').addEventListener('change', e=>{ state.de = e.target.value; renderLista(); });
+      $('#ate').addEventListener('change', e=>{ state.ate = e.target.value; renderLista(); });
+      $('#ordenar').addEventListener('change', e=>{ state.ordenar = e.target.value; renderLista(); });
+      $('#btn-limpar-modal').addEventListener('click', (ev)=>{ ev.preventDefault(); limparFiltros(); });
+      const btnLimpar = $('#limpar'); if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
+    }); }
 
       const dlg = $('#dlg-filtros');
       $('#btn-filtros').addEventListener('click', ()=> dlg.showModal());
