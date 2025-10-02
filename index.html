@@ -362,7 +362,7 @@
         if (typeof idx[0] === 'string') names = idx;
         else if (typeof idx[0] === 'object') names = idx.map(x => x.file || x.name || x.path).filter(Boolean);
       }
-      // NOVO: prioriza os JSONs mais recentes assumindo que os últimos foram adicionados por último
+      // Prioriza os JSONs mais recentes assumindo que os últimos foram adicionados por último
       names = names.slice().reverse();
 
       const lists = await Promise.all(names.map(async (name)=>{
@@ -601,9 +601,6 @@
     }
 
     // ========= Boot =========
-    let ITENS = [];   // opcional (data.json)
-    let BANNERS = []; // banners
-
     async function iniciar(){
       // Carrega QS (suporta reabrir com ?page=2&categoria=...)
       const qs = readQuery();
@@ -649,8 +646,13 @@
     // ========= Testes simples =========
     function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
     function runSelfTests(){
+      // existentes
       expect('slicePage funciona', JSON.stringify(slicePage([1,2,3,4,5],2,2)) === JSON.stringify([3,4]));
       expect('Ordenação por data desc mantém ordem', aplicarOrdenacao([{data:'2025-01-01'},{data:'2024-01-01'}],'data_desc')[0].data==='2025-01-01');
+      // novos
+      expect('Page size >= 1', getPageSize() >= 1);
+      const filtroCat = (()=>{ const prev=state.categoria; state.categoria='3p'; const ok=passaFiltro({categoria:'3p',titulo:'',autores:'',evento:'',tema:[],data:'',descricao:''}); state.categoria=prev; return ok; })();
+      expect('Filtro por categoria funciona', filtroCat === true);
     }
   </script>
 </body>
