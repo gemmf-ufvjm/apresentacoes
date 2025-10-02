@@ -85,6 +85,20 @@
     "categoria": "eventos_externos"
   },
   {
+    "titulo": "Modelagem da dinâmica da vegetação do Cerrado utilizando índices espectrais",
+    "autores": "Talvane Coelho, Marcela de Castro NunesSantosTerra",
+    "evento": "MensuFlor 2025",
+    "tema": ["Modelagem ", "Cerrado"],
+    "data": "2025-03-10",
+    "descricao": "O objetivo é verificar se  aspectos  relacionados  à  dinâmica  da  vegetação  de  Cerrado  (carbono,  mortalidade, recrutamento,  rotação  e  mudança  líquida)  estão  relacionados  às  variações  em  índices espectrais derivados de imagens de sensoriamento remoto, como Landsat 5",
+    "img": "assets/mensuflor_2025/modelagem-talvane.jpg",
+    "pdf": "assets/mensuflor_2025/modelagem_banner-talvane.pdf",
+    "pptx": "assets/mensuflor_2025/modelagem-talvane.pptx",
+    "texto": "assets/mensuflor_2025/modelagem-talvane.pdf",
+    "github": "",
+    "categoria": "eventos_externos"
+  },
+  {
     "titulo": "Relação hipsométrica de um plantio de Khaya grandifoliola C. DC. em Curvelo-MG",
     "autores": "Maria Luiza de Azevedo",
     "evento": "MensuFlor 2025",
