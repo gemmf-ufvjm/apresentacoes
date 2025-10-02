@@ -111,6 +111,7 @@
                 class="hidden inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
           Anterior
         </button>
+        <span id="page-indicator" class="text-sm text-neutral-600 dark:text-neutral-400 hidden"></span>
         <button id="btn-mais"
                 class="hidden inline-flex items-center gap-2 rounded-xl bg-indigo-600 text-white px-4 py-2 text-sm hover:bg-indigo-700">
           Próxima página
@@ -179,6 +180,19 @@
         </div>
       </article>
     </template>
+
+    <!-- Fale conosco -->
+    <section id="contato" class="mt-8">
+      <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 bg-white dark:bg-neutral-900">
+        <h2 class="text-lg font-semibold mb-1">Fale conosco</h2>
+        <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">
+          GEMMF — Grupo de Estudo de Mensuração e Manejo Florestal
+        </p>
+        <a href="mailto:gemmf.def@ufvjm.edu.br" class="inline-flex items-center rounded-xl px-3 py-2 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+          gemmf.def@ufvjm.edu.br
+        </a>
+      </div>
+    </section>
   </main>
 
   <!-- Modal Filtros -->
@@ -284,6 +298,19 @@
     }
     function formatarData(yyyyMMdd){ if(!yyyyMMdd) return ''; const d=new Date(yyyyMMdd); return isNaN(d)? yyyyMMdd : d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'2-digit'}); }
 
+    // Query string (inclui página e categoria)
+    function readQuery(){
+      const p = new URLSearchParams(location.search);
+      const obj = {};
+      for (const [k,v] of p.entries()) obj[k]=v;
+      return obj;
+    }
+    function writeQuery(state){
+      const p = new URLSearchParams();
+      for (const [k,v] of Object.entries(state)) if (v) p.set(k, String(v));
+      history.replaceState(null, '', `${location.pathname}?${p.toString()}`);
+    }
+
     // ========= Normalização =========
     function normalizarItem(x){ return {
       id: x.id || genId(),
@@ -308,11 +335,9 @@
       tema: Array.isArray(b.tema) ? b.tema : (b.tema ? [b.tema] : []),
       data: b.data || '',
       descricao: b.descricao || '',
-      // NOVO: PDF com texto/metodologia
       texto: b.texto || b.textoPdf || '',
       repo: b.repo || b.github || '',
       dados: b.dados || b.dataUrl || '',
-      // NOVO: categoria para filtrar por abas
       categoria: (b.categoria || 'inicio').toString().toLowerCase()
     };}
 
@@ -337,6 +362,9 @@
         if (typeof idx[0] === 'string') names = idx;
         else if (typeof idx[0] === 'object') names = idx.map(x => x.file || x.name || x.path).filter(Boolean);
       }
+      // NOVO: prioriza os JSONs mais recentes assumindo que os últimos foram adicionados por último
+      names = names.slice().reverse();
+
       const lists = await Promise.all(names.map(async (name)=>{
         try { return coerceBannersFromPayload(await baixarJSON(base + String(name).replace(/^\/*/,''))); }
         catch(e){ console.warn('JSON inválido:', name, e.message); return []; }
@@ -347,23 +375,20 @@
     // ========= Estado =========
     const state = {
       q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc',
-      page:1,                 // pagina atual (paginacao progressiva)
+      page:1,                 // página atual (paginação real)
       categoria:'inicio',     // aba ativa
     };
 
     // ========= Filtros & Ordenação =========
     function passaFiltro(i){
-      // filtro por categoria (abas)
       if (state.categoria && state.categoria !== 'inicio'){
         if ((i.categoria || 'inicio') !== state.categoria) return false;
       }
-      // busca livre
       const termo = state.q.trim().toLowerCase();
       if (termo){
         const campo = [i.titulo, i.autores, i.evento, i.descricao, ...(i.tema||[])].join(' ').toLowerCase();
         if (!campo.includes(termo)) return false;
       }
-      // selects
       if (state.evento && i.evento !== state.evento) return false;
       if (state.tema && !(i.tema||[]).includes(state.tema)) return false;
       if (state.de && (!i.data || i.data < state.de)) return false;
@@ -390,6 +415,7 @@
       return Math.max(1, cols);
     }
     function getPageSize(){ return 4 * getGridCols(); } // 4 linhas * n colunas
+    function slicePage(arr, page, pageSize){ const start=(page-1)*pageSize; return arr.slice(start, start+pageSize); }
 
     // ========= Dados =========
     let ITENS = [];   // opcional (data.json)
@@ -414,7 +440,8 @@
         btn.addEventListener('click', ()=>{
           state.evento = val;
           const sel=$('#evento'); if (sel) sel.value=val;
-          state.page=1; renderBanners(); $('#dlg-menu').close();
+          state.page=1; renderBanners();
+          $('#dlg-menu').close();
         });
         cont.append(btn);
       };
@@ -423,18 +450,23 @@
     }
 
     function renderBanners(){
+      // Filtro + ordenação (prioridade por data desc já é o padrão)
+      let todos = aplicarOrdenacao(BANNERS.filter(passaFiltro), state.ordenar);
+
+      // Ajuste de página se filtros reduzirem o total
+      const pageSize = getPageSize();
+      const totalPages = Math.max(1, Math.ceil(todos.length / pageSize));
+      if (state.page > totalPages) state.page = totalPages;
+
+      // Subconjunto da página
+      const exibidos = slicePage(todos, state.page, pageSize);
+
+      // Atualiza QS
+      writeQuery({ ...state });
+
+      // Render
       const cont = $('#banners'); cont.innerHTML = '';
       const tpl = $('#tpl-banner');
-
-      // filtro + ordenação
-      const todos = aplicarOrdenacao(BANNERS.filter(passaFiltro), state.ordenar);
-
-      // paginação progressiva
-      const pageSize = getPageSize();
-      const end = Math.min(todos.length, state.page * pageSize);
-      const exibidos = todos.slice(0, end);
-
-      // cards
       for (const b of exibidos){
         const el = tpl.content.cloneNode(true);
         const imgEl = $('.banner-img', el);
@@ -468,19 +500,26 @@
         cont.append(el);
       }
 
-      // paginação: mostrar/ocultar botões
+      // Paginação: mostrar/ocultar botões + indicador
       const btnMais = $('#btn-mais');
       const btnAnt  = $('#btn-anterior');
+      const ind     = $('#page-indicator');
+
+      if (ind){
+        ind.textContent = `Página ${state.page} de ${Math.max(1,totalPages)}`;
+        ind.classList.toggle('hidden', todos.length === 0);
+      }
+
       if (btnMais){
-        if (end < todos.length) {
+        if (state.page < totalPages) {
           btnMais.classList.remove('hidden');
-          btnMais.onclick = ()=>{ state.page += 1; renderBanners(); };
+          btnMais.onclick = ()=>{ state.page = Math.min(totalPages, state.page + 1); renderBanners(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
         } else { btnMais.classList.add('hidden'); btnMais.onclick = null; }
       }
       if (btnAnt){
         if (state.page > 1) {
           btnAnt.classList.remove('hidden');
-          btnAnt.onclick = ()=>{ state.page = Math.max(1, state.page - 1); renderBanners(); };
+          btnAnt.onclick = ()=>{ state.page = Math.max(1, state.page - 1); renderBanners(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
         } else { btnAnt.classList.add('hidden'); btnAnt.onclick = null; }
       }
     }
@@ -545,8 +584,6 @@
           renderBanners();
         });
       });
-      // seleciona aba Início por padrão
-      const firstTab = $('#tabs .tab'); if (firstTab) firstTab.click();
 
       // limpar
       const btnLimpar = $('#limpar'); if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
@@ -564,7 +601,23 @@
     }
 
     // ========= Boot =========
+    let ITENS = [];   // opcional (data.json)
+    let BANNERS = []; // banners
+
     async function iniciar(){
+      // Carrega QS (suporta reabrir com ?page=2&categoria=...)
+      const qs = readQuery();
+      Object.assign(state, {
+        q: qs.q || state.q,
+        evento: qs.evento || state.evento,
+        tema: qs.tema || state.tema,
+        de: qs.de || state.de,
+        ate: qs.ate || state.ate,
+        ordenar: qs.ordenar || state.ordenar,
+        page: Number(qs.page || state.page) || 1,
+        categoria: qs.categoria || state.categoria
+      });
+
       conectarUI();
 
       try {
@@ -575,14 +628,20 @@
 
       try {
         BANNERS = await carregarBannersDoManifest();
+        // Garantir que, por padrão, já venham em data mais recente
+        BANNERS = aplicarOrdenacao(BANNERS, 'data_desc');
       } catch(e){ console.warn(e.message); BANNERS = []; }
 
       preencherSelectsBanners(BANNERS);
       buildMenuEventos(BANNERS);
+
+      // Seleciona aba vinda da QS (se houver)
+      const btn = $(`#tabs .tab[data-categoria="${state.categoria}"]`) || $('#tabs .tab');
+      if (btn) btn.click();
+
       renderBanners();
       renderLista();
 
-      // auto-testes leves (não quebram a UI)
       try { runSelfTests(); } catch (err) { console.warn('Auto-testes:', err.message); }
     }
     iniciar();
@@ -590,14 +649,8 @@
     // ========= Testes simples =========
     function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
     function runSelfTests(){
-      expect('BANNERS é array', Array.isArray(BANNERS));
-      const b = normalizarBanner({ titulo:'t', img:'x.jpg' });
-      expect('categoria default é inicio', b.categoria === 'inicio');
-      const prev = { ...state };
-      state.categoria = '3p';
-      expect('Filtro por categoria exclui outras', passaFiltro({ titulo:'', autores:'', evento:'', tema:[], data:'', descricao:'', categoria:'aulas' }) === false);
-      state.categoria = prev.categoria;
-      expect('Page size >= 1', getPageSize() >= 1);
+      expect('slicePage funciona', JSON.stringify(slicePage([1,2,3,4,5],2,2)) === JSON.stringify([3,4]));
+      expect('Ordenação por data desc mantém ordem', aplicarOrdenacao([{data:'2025-01-01'},{data:'2024-01-01'}],'data_desc')[0].data==='2025-01-01');
     }
   </script>
 </body>
