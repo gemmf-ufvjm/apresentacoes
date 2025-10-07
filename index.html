@@ -65,6 +65,11 @@
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h18M6 12h12M10 19h4"/></svg>
           Filtros
         </button>
+
+        <!-- Botão para abrir o gerador de JSON -->
+        <button id="btn-add" class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm" title="Adicionar apresentação (gerar JSON)">
+          ➕ Apresentação
+        </button>
       </div>
     </div>
   </header>
@@ -263,6 +268,154 @@
     </div>
   </dialog>
 
+  <!-- Modal: Adicionar apresentação / Gerar JSON -->
+  <dialog id="dlg-add" class="rounded-2xl p-0 w-full max-w-2xl bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-800 shadow-2xl">
+    <form method="dialog" class="flex flex-col h-full" id="form-add">
+      <header class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+        <h3 class="font-semibold">Adicionar apresentação (gerar JSON)</h3>
+        <button class="rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800" value="close" aria-label="Fechar">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="p-4 space-y-3 overflow-y-auto">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Pasta do evento (dentro de <code>assets/</code>)</label>
+            <input name="pasta" required placeholder="mensuflor_2025" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Categoria</label>
+            <select name="categoria" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2">
+              <option value="eventos_externos">Eventos Externos</option>
+              <option value="eventos_internos">Eventos Internos</option>
+              <option value="aulas">Aulas</option>
+              <option value="apresentacoes">Apresentações</option>
+              <option value="3p">3P</option>
+              <option value="inicio">Início</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Título</label>
+            <input name="titulo" required class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Autores (separar por ;)</label>
+            <input name="autores" required class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Evento</label>
+            <input name="evento" required placeholder="MensuFlor 2025" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Data</label>
+            <input name="data" type="date" required class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Tema (separar por ,)</label>
+            <input name="tema" placeholder="LiDAR, Amazônia" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+        </div>
+
+        <!-- Toggle padronizado -->
+        <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3">
+          <label class="inline-flex items-center gap-2">
+            <input type="checkbox" name="padrao" id="padrao" checked />
+            <span class="text-sm font-medium">Usar nomes padronizados</span>
+          </label>
+          <p class="text-xs text-neutral-500 mt-1">Padronizado: <code>assets/&lt;pasta&gt;/&lt;base&gt;.jpg</code>, <code>.../&lt;base&gt;_banner.pdf</code>, <code>.../&lt;base&gt;.pptx</code>, <code>.../&lt;base&gt;.pdf</code>.</p>
+
+          <!-- Grupo padronizado -->
+          <div id="group-padrao" class="mt-3 grid sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Arquivo base (sem caminho)</label>
+              <input name="base" placeholder="meu_banner" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+              <p class="text-xs text-neutral-500 mt-1">Os arquivos serão montados em <code>assets/&lt;pasta&gt;/</code>.</p>
+            </div>
+            <div class="grid grid-cols-1 gap-2">
+              <label class="inline-flex items-center gap-2">
+                <input type="checkbox" name="incluir_pptx" checked />
+                <span class="text-sm">Incluir PPTX</span>
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input type="checkbox" name="incluir_texto" checked />
+                <span class="text-sm">Incluir Texto (PDF)</span>
+              </label>
+              <p class="text-xs text-neutral-500">JPG e PDF do banner são mantidos para garantir visualização.</p>
+            </div>
+          </div>
+
+          <!-- Grupo personalizado -->
+          <div id="group-custom" class="mt-3 grid sm:grid-cols-2 gap-3 hidden">
+            <div>
+              <label class="block text-sm font-medium mb-1">Imagem (jpg)</label>
+              <input name="img" placeholder="banner.jpg ou assets/mensuflor_2025/banner.jpg" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">PDF do banner</label>
+              <input name="pdf" placeholder="banner_banner.pdf ou assets/mensuflor_2025/banner_banner.pdf" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">PPTX (opcional)</label>
+              <input name="pptx" placeholder="banner.pptx" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Texto (PDF, opcional)</label>
+              <input name="texto" placeholder="banner.pdf" class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+            </div>
+            <p class="text-xs text-neutral-500 sm:col-span-2">Se o caminho não começar com <code>assets/</code>, será prefixado com <code>assets/&lt;pasta&gt;/</code>.</p>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Repositório (opcional)</label>
+            <input name="repo" placeholder="https://github.com/..." class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Link de dados (opcional)</label>
+            <input name="dados" placeholder="https://drive.google.com/..." class="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">JSON (item atual)</label>
+          <textarea id="json-out" rows="6" class="w-full font-mono text-xs rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2" readonly></textarea>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between">
+            <label class="block text-sm font-medium">Lista atual (<span id="lista-count">0</span> item(ns))</label>
+            <div class="flex items-center gap-2">
+              <button id="btn-limpar-lista" type="button" class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-2 py-1 text-xs">Limpar lista</button>
+            </div>
+          </div>
+          <div id="lista-add" class="mt-2 grid gap-2"></div>
+        </div>
+      </div>
+      <footer class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <button id="btn-gerar" class="rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm">Gerar JSON</button>
+          <button id="btn-copiar" type="button" class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Copiar (item)</button>
+          <button id="btn-baixar" type="button" class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Baixar .json (item)</button>
+          <!-- NOVO: botão para limpar o formulário (mantendo a lista) -->
+          <button id="btn-novo" type="button" class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Novo</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-adicionar-item" type="button" class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Adicionar à lista</button>
+          <button id="btn-copiar-lista" type="button" class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Copiar lista</button>
+          <button id="btn-baixar-lista" type="button" class="rounded-xl border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm">Baixar .json (lista)</button>
+          <button class="rounded-xl px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-700" value="close">Fechar</button>
+        </div>
+      </footer>
+    </form>
+  </dialog>
+
   <footer class="max-w-7xl mx-auto px-4 pb-12 text-xs text-neutral-500 dark:text-neutral-400">
     <hr class="border-neutral-200 dark:border-neutral-800 mb-4" />
     <p>Iniciativa Treelab e GEMMF — UFVJM</p>
@@ -271,7 +424,6 @@
   <script>
     // ========= Config =========
     const DATA_JSON_URL = 'data.json';
-    // Procura o manifesto em uma dessas pastas:
     const BANNERS_DIR_CANDIDATES = ['json/banners/', 'banners/json/banners/'];
     const BANNERS_INDEX_FILE = 'index.json';
 
@@ -280,7 +432,9 @@
     const $$ = (s, el=document) => [...el.querySelectorAll(s)];
     const genId = () => (crypto.randomUUID ? crypto.randomUUID() : ('id-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)));
     const debounce = (fn, ms=120) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+    const download = (filename, text) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type:'application/json;charset=utf-8'})); a.download = filename; a.click(); URL.revokeObjectURL(a.href); };
     function uniq(arr){ return [...new Set(arr.filter(Boolean))]; }
+    const toStr = (v) => (v ?? '').toString().trim();
 
     function isLikelyJSONResponse(resp){
       const ct = resp.headers.get('content-type') || '';
@@ -299,61 +453,18 @@
     function formatarData(yyyyMMdd){ if(!yyyyMMdd) return ''; const d=new Date(yyyyMMdd); return isNaN(d)? yyyyMMdd : d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'2-digit'}); }
 
     // Query string (inclui página e categoria)
-    function readQuery(){
-      const p = new URLSearchParams(location.search);
-      const obj = {};
-      for (const [k,v] of p.entries()) obj[k]=v;
-      return obj;
-    }
-    function writeQuery(state){
-      const p = new URLSearchParams();
-      for (const [k,v] of Object.entries(state)) if (v) p.set(k, String(v));
-      history.replaceState(null, '', `${location.pathname}?${p.toString()}`);
-    }
+    function readQuery(){ const p = new URLSearchParams(location.search); const obj = {}; for (const [k,v] of p.entries()) obj[k]=v; return obj; }
+    function writeQuery(state){ const p = new URLSearchParams(); for (const [k,v] of Object.entries(state)) if (v) p.set(k, String(v)); history.replaceState(null, '', `${location.pathname}?${p.toString()}`); }
 
     // ========= Normalização =========
-    function normalizarItem(x){ return {
-      id: x.id || genId(),
-      titulo: x.titulo || 'Sem título',
-      autores: x.autores || '',
-      evento: x.evento || '',
-      tema: Array.isArray(x.tema) ? x.tema : (x.tema ? [x.tema] : []),
-      palavrasChave: x.palavrasChave || [],
-      data: x.data || '',
-      descricao: x.descricao || '',
-      arquivo: x.arquivo, tamanhoBytes: x.tamanhoBytes
-    };}
+    function normalizarItem(x){ return { id: x.id || genId(), titulo: x.titulo || 'Sem título', autores: x.autores || '', evento: x.evento || '', tema: Array.isArray(x.tema) ? x.tema : (x.tema ? [x.tema] : []), palavrasChave: x.palavrasChave || [], data: x.data || '', descricao: x.descricao || '', arquivo: x.arquivo, tamanhoBytes: x.tamanhoBytes };}
 
-    function normalizarBanner(b){ return {
-      id: b.id || genId(),
-      titulo: b.titulo || 'Banner',
-      autores: b.autores || '',
-      img: b.img || '',
-      pdf: b.pdf || '',
-      pptx: b.pptx || '',
-      evento: b.evento || '',
-      tema: Array.isArray(b.tema) ? b.tema : (b.tema ? [b.tema] : []),
-      data: b.data || '',
-      descricao: b.descricao || '',
-      texto: b.texto || b.textoPdf || '',
-      repo: b.repo || b.github || '',
-      dados: b.dados || b.dataUrl || '',
-      categoria: (b.categoria || 'inicio').toString().toLowerCase()
-    };}
+    function normalizarBanner(b){ return { id: b.id || genId(), titulo: b.titulo || 'Banner', autores: b.autores || '', img: b.img || '', pdf: b.pdf || '', pptx: b.pptx || '', evento: b.evento || '', tema: Array.isArray(b.tema) ? b.tema : (b.tema ? [b.tema] : []), data: b.data || '', descricao: b.descricao || '', texto: b.texto || b.textoPdf || '', repo: b.repo || b.github || '', dados: b.dados || b.dataUrl || '', categoria: (b.categoria || 'inicio').toString().toLowerCase() };}
 
-    function coerceBannersFromPayload(p){
-      if (Array.isArray(p)) return p.map(normalizarBanner);
-      if (p && typeof p === 'object') return [normalizarBanner(p)];
-      return [];
-    }
+    function coerceBannersFromPayload(p){ if (Array.isArray(p)) return p.map(normalizarBanner); if (p && typeof p === 'object') return [normalizarBanner(p)]; return []; }
 
     // ========= Resolver diretório + carregar =========
-    async function resolverDiretorioDeBanners(){
-      for (const base of BANNERS_DIR_CANDIDATES){
-        try { await baixarJSON(base + BANNERS_INDEX_FILE); return base; } catch {}
-      }
-      throw new Error('Nenhum index.json encontrado em: ' + BANNERS_DIR_CANDIDATES.join(', '));
-    }
+    async function resolverDiretorioDeBanners(){ for (const base of BANNERS_DIR_CANDIDATES){ try { await baixarJSON(base + BANNERS_INDEX_FILE); return base; } catch {} } throw new Error('Nenhum index.json encontrado em: ' + BANNERS_DIR_CANDIDATES.join(', ')); }
     async function carregarBannersDoManifest(){
       const base = await resolverDiretorioDeBanners();
       const idx = await baixarJSON(base + BANNERS_INDEX_FILE);
@@ -362,28 +473,17 @@
         if (typeof idx[0] === 'string') names = idx;
         else if (typeof idx[0] === 'object') names = idx.map(x => x.file || x.name || x.path).filter(Boolean);
       }
-      // Prioriza os JSONs mais recentes assumindo que os últimos foram adicionados por último
-      names = names.slice().reverse();
-
-      const lists = await Promise.all(names.map(async (name)=>{
-        try { return coerceBannersFromPayload(await baixarJSON(base + String(name).replace(/^\/*/,''))); }
-        catch(e){ console.warn('JSON inválido:', name, e.message); return []; }
-      }));
+      names = names.slice().reverse(); // prioriza JSONs mais recentes
+      const lists = await Promise.all(names.map(async (name)=>{ try { return coerceBannersFromPayload(await baixarJSON(base + String(name).replace(/^\/*/,''))); } catch(e){ console.warn('JSON inválido:', name, e.message); return []; } }));
       return lists.flat().filter(Boolean);
     }
 
     // ========= Estado =========
-    const state = {
-      q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc',
-      page:1,                 // página atual (paginação real)
-      categoria:'inicio',     // aba ativa
-    };
+    const state = { q:'', evento:'', tema:'', de:'', ate:'', ordenar:'data_desc', page:1, categoria:'inicio' };
 
     // ========= Filtros & Ordenação =========
     function passaFiltro(i){
-      if (state.categoria && state.categoria !== 'inicio'){
-        if ((i.categoria || 'inicio') !== state.categoria) return false;
-      }
+      if (state.categoria && state.categoria !== 'inicio'){ if ((i.categoria || 'inicio') !== state.categoria) return false; }
       const termo = state.q.trim().toLowerCase();
       if (termo){
         const campo = [i.titulo, i.autores, i.evento, i.descricao, ...(i.tema||[])].join(' ').toLowerCase();
@@ -410,8 +510,11 @@
     function getGridCols(){
       const el = document.getElementById('banners');
       if (!el) return 1;
-      const cs = getComputedStyle(el);
-      const cols = cs.gridTemplateColumns?.split(' ').filter(Boolean).length || 1;
+      const gtc = getComputedStyle(el).gridTemplateColumns || '';
+      let cols = 1;
+      const m = gtc.match(/repeat\((\d+),/);
+      if (m) cols = parseInt(m[1], 10);
+      else cols = gtc.split(' ').filter(Boolean).length || 1;
       return Math.max(1, cols);
     }
     function getPageSize(){ return 4 * getGridCols(); } // 4 linhas * n colunas
@@ -450,21 +553,13 @@
     }
 
     function renderBanners(){
-      // Filtro + ordenação (prioridade por data desc já é o padrão)
       let todos = aplicarOrdenacao(BANNERS.filter(passaFiltro), state.ordenar);
-
-      // Ajuste de página se filtros reduzirem o total
       const pageSize = getPageSize();
       const totalPages = Math.max(1, Math.ceil(todos.length / pageSize));
       if (state.page > totalPages) state.page = totalPages;
-
-      // Subconjunto da página
       const exibidos = slicePage(todos, state.page, pageSize);
-
-      // Atualiza QS
       writeQuery({ ...state });
 
-      // Render
       const cont = $('#banners'); cont.innerHTML = '';
       const tpl = $('#tpl-banner');
       for (const b of exibidos){
@@ -500,7 +595,6 @@
         cont.append(el);
       }
 
-      // Paginação: mostrar/ocultar botões + indicador
       const btnMais = $('#btn-mais');
       const btnAnt  = $('#btn-anterior');
       const ind     = $('#page-indicator');
@@ -509,7 +603,6 @@
         ind.textContent = `Página ${state.page} de ${Math.max(1,totalPages)}`;
         ind.classList.toggle('hidden', todos.length === 0);
       }
-
       if (btnMais){
         if (state.page < totalPages) {
           btnMais.classList.remove('hidden');
@@ -550,7 +643,71 @@
 
     function abrirImagem(src){ const dlg = $('#dlg-img'); $('#img-full').src = src; dlg.showModal(); }
 
-    // ========= UI =========
+    // ========= Helpers do gerador =========
+    function resolvePath(pasta, p){
+      const s = toStr(p);
+      if (!s) return '';
+      if (/^(https?:)?\/\//i.test(s)) return s;
+      if (s.startsWith('assets/')) return s;
+      return `assets/${pasta.replace(/^\/|\/$/g,'')}/${s.replace(/^\//,'')}`;
+    }
+
+    function buildFilesFromForm(f){
+      const pasta = toStr(f.get('pasta'));
+      const padrao = !!f.get('padrao');
+      let files = { img:"", pdf:"", pptx:"", texto:"" };
+
+      if (padrao){
+        const base = toStr(f.get('base')) || 'arquivo';
+        files.img   = `assets/${pasta}/${base}.jpg`;
+        files.pdf   = `assets/${pasta}/${base}_banner.pdf`;
+        files.pptx  = f.get('incluir_pptx') ? `assets/${pasta}/${base}.pptx` : "";
+        files.texto = f.get('incluir_texto') ? `assets/${pasta}/${base}.pdf`  : "";
+      } else {
+        const img   = resolvePath(pasta, f.get('img'));
+        const pdf   = resolvePath(pasta, f.get('pdf'));
+        const pptx  = resolvePath(pasta, f.get('pptx'));
+        const texto = resolvePath(pasta, f.get('texto'));
+        files.img   = img   || "";
+        files.pdf   = pdf   || "";
+        files.pptx  = pptx  || "";
+        files.texto = texto || "";
+      }
+      return files;
+    }
+
+    function buildObjectFromForm(f){
+      const tema = toStr(f.get('tema')).split(',').map(s=>s.trim()).filter(Boolean);
+      const obj = {
+        titulo: toStr(f.get('titulo')),
+        autores: toStr(f.get('autores')),
+        evento: toStr(f.get('evento')),
+        tema,
+        data: toStr(f.get('data')),
+        descricao: toStr(f.get('descricao')), // ficará "" se não existir campo
+        categoria: toStr(f.get('categoria')) || 'inicio',
+        ...buildFilesFromForm(f),
+        repo: toStr(f.get('repo')),
+        dados: toStr(f.get('dados')),
+      };
+      return obj;
+    }
+
+    // ========= Gerador: estado da lista =========
+    const LISTA_JSON = [];
+
+    // helper para sincronizar visibilidade dos grupos padrao/custom
+    function setPadraoVisibility(){
+      const chkPadrao = $('#padrao');
+      const grpPadrao = $('#group-padrao');
+      const grpCustom = $('#group-custom');
+      const on = !!chkPadrao?.checked;
+      if (grpPadrao && grpCustom){
+        grpPadrao.classList.toggle('hidden', !on);
+        grpCustom.classList.toggle('hidden', on);
+      }
+    }
+
     function conectarUI(){
       // tema
       $('#btn-theme').addEventListener('click', ()=>{
@@ -585,11 +742,128 @@
         });
       });
 
-      // limpar
+      // limpar filtros
       const btnLimpar = $('#limpar'); if (btnLimpar) btnLimpar.addEventListener('click', limparFiltros);
 
-      // re-render quando cols mudarem (impacta paginação por 4 linhas)
+      // re-render quando cols mudarem
       window.addEventListener('resize', debounce(()=>{ renderBanners(); }, 150));
+
+      // abrir gerador de JSON
+      $('#btn-add').addEventListener('click', ()=> {
+        $('#dlg-add').showModal();
+        setPadraoVisibility(); // garante estado visual correto ao abrir
+      });
+
+      // alternar modo padronizado/custom
+      const chkPadrao = $('#padrao');
+      chkPadrao.addEventListener('change', setPadraoVisibility);
+
+      // ações do gerador
+      $('#btn-gerar').addEventListener('click', (e)=>{
+        e.preventDefault();
+        const f = new FormData($('#form-add'));
+        if (!toStr(f.get('pasta'))){ alert('Informe a pasta do evento (dentro de assets).'); return; }
+        if (!toStr(f.get('titulo'))){ alert('Informe o título.'); return; }
+        if (!toStr(f.get('autores'))){ alert('Informe os autores.'); return; }
+        if (!toStr(f.get('evento'))){ alert('Informe o evento.'); return; }
+        if (!toStr(f.get('data'))){ alert('Informe a data.'); return; }
+        if (!f.get('padrao')){
+          const hasImg = !!toStr(f.get('img'));
+          const hasPdf = !!toStr(f.get('pdf'));
+          if (!hasImg && !hasPdf){ alert('No modo personalizado, informe ao menos a Imagem (jpg) ou o PDF do banner.'); return; }
+        }
+        const obj = buildObjectFromForm(f);
+        $('#json-out').value = JSON.stringify(obj, null, 2);
+      });
+
+      $('#btn-copiar').addEventListener('click', async ()=>{
+        const t = $('#json-out').value;
+        if (!t) { alert('Gere o JSON do item primeiro.'); return; }
+        try { await navigator.clipboard.writeText(t); alert('JSON copiado para a área de transferência!'); }
+        catch { alert('Não foi possível copiar. Selecione o texto e copie manualmente.'); }
+      });
+
+      $('#btn-baixar').addEventListener('click', ()=>{
+        const t = $('#json-out').value;
+        if (!t) { alert('Gere o JSON do item primeiro.'); return; }
+        let nome = 'apresentacao.json';
+        try {
+          const obj = JSON.parse(t);
+          if (obj && obj.evento){
+            const s = obj.evento.toString().toLowerCase().replace(/\s+/g,'_').replace(/[^\w\-]+/g,'');
+            nome = `${s}.json`;
+          }
+        } catch {}
+        download(nome, t);
+      });
+
+      function renderListaAdd(){
+        const cont = $('#lista-add'); cont.innerHTML = '';
+        $('#lista-count').textContent = String(LISTA_JSON.length);
+        LISTA_JSON.forEach((it, idx)=>{
+          const card = document.createElement('div');
+          card.className = 'rounded-lg border border-neutral-200 dark:border-neutral-800 p-2 flex items-start gap-2';
+          card.innerHTML = `
+            <div class="flex-1">
+              <div class="text-sm font-medium">${it.titulo || 'Sem título'}</div>
+              <div class="text-xs text-neutral-500">${it.evento || ''} • ${it.data || ''}</div>
+            </div>
+            <button class="shrink-0 rounded-lg px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-700">Remover</button>
+          `;
+          card.querySelector('button').addEventListener('click', ()=>{
+            LISTA_JSON.splice(idx, 1);
+            renderListaAdd();
+          });
+          cont.append(card);
+        });
+      }
+
+      $('#btn-adicionar-item').addEventListener('click', ()=>{
+        const t = $('#json-out').value.trim();
+        if (!t){ alert('Gere o JSON do item antes de adicionar.'); return; }
+        try {
+          const obj = JSON.parse(t);
+          LISTA_JSON.push(obj);
+          renderListaAdd();
+          alert('Item adicionado à lista!');
+        } catch(e){
+          alert('JSON inválido. Gere novamente.');
+        }
+      });
+
+      $('#btn-copiar-lista').addEventListener('click', async ()=>{
+        if (!LISTA_JSON.length){ alert('A lista está vazia.'); return; }
+        const txt = JSON.stringify(LISTA_JSON, null, 2);
+        try { await navigator.clipboard.writeText(txt); alert('Lista copiada para a área de transferência!'); }
+        catch { alert('Não foi possível copiar.'); }
+      });
+
+      $('#btn-baixar-lista').addEventListener('click', ()=>{
+        if (!LISTA_JSON.length){ alert('A lista está vazia.'); return; }
+        download('apresentacoes.json', JSON.stringify(LISTA_JSON, null, 2));
+      });
+
+      $('#btn-limpar-lista').addEventListener('click', ()=>{
+        if (!LISTA_JSON.length) return;
+        if (confirm('Limpar todos os itens da lista?')){
+          LISTA_JSON.length = 0;
+          const cont = $('#lista-add'); cont.innerHTML = '';
+          $('#lista-count').textContent = '0';
+        }
+      });
+
+      // NOVO: botão "Novo" para limpar o formulário e manter a lista
+      $('#btn-novo').addEventListener('click', ()=>{
+        const form = $('#form-add');
+        form.reset();           // volta aos valores de markup (padrao ligado, etc.)
+        setPadraoVisibility();  // garante grupos corretos (padrao/custom)
+        $('#json-out').value = '';
+        // mantém LISTA_JSON como está; só atualiza o contador (caso diálog já exibisse outro número)
+        $('#lista-count').textContent = String(LISTA_JSON.length);
+        // foco inicial para acelerar o fluxo
+        const pasta = form.querySelector('input[name="pasta"]');
+        if (pasta) pasta.focus();
+      });
     }
 
     function limparFiltros(){
@@ -602,7 +876,6 @@
 
     // ========= Boot =========
     async function iniciar(){
-      // Carrega QS (suporta reabrir com ?page=2&categoria=...)
       const qs = readQuery();
       Object.assign(state, {
         q: qs.q || state.q,
@@ -625,14 +898,12 @@
 
       try {
         BANNERS = await carregarBannersDoManifest();
-        // Garantir que, por padrão, já venham em data mais recente
         BANNERS = aplicarOrdenacao(BANNERS, 'data_desc');
       } catch(e){ console.warn(e.message); BANNERS = []; }
 
       preencherSelectsBanners(BANNERS);
       buildMenuEventos(BANNERS);
 
-      // Seleciona aba vinda da QS (se houver)
       const btn = $(`#tabs .tab[data-categoria="${state.categoria}"]`) || $('#tabs .tab');
       if (btn) btn.click();
 
@@ -646,13 +917,32 @@
     // ========= Testes simples =========
     function expect(name, cond){ if(!cond) throw new Error('Teste falhou: '+name); console.debug('✅', name); }
     function runSelfTests(){
-      // existentes
       expect('slicePage funciona', JSON.stringify(slicePage([1,2,3,4,5],2,2)) === JSON.stringify([3,4]));
       expect('Ordenação por data desc mantém ordem', aplicarOrdenacao([{data:'2025-01-01'},{data:'2024-01-01'}],'data_desc')[0].data==='2025-01-01');
-      // novos
       expect('Page size >= 1', getPageSize() >= 1);
       const filtroCat = (()=>{ const prev=state.categoria; state.categoria='3p'; const ok=passaFiltro({categoria:'3p',titulo:'',autores:'',evento:'',tema:[],data:'',descricao:''}); state.categoria=prev; return ok; })();
       expect('Filtro por categoria funciona', filtroCat === true);
+
+      // Gerador
+      expect('resolvePath com assets/ não altera', resolvePath('mensu', 'assets/mensu/x.jpg')==='assets/mensu/x.jpg');
+      expect('resolvePath prefixa pasta', resolvePath('mensu', 'x.jpg')==='assets/mensu/x.jpg');
+
+      const fPadraoOn = new FormData();
+      fPadraoOn.set('pasta','mensu'); fPadraoOn.set('padrao','on'); fPadraoOn.set('base','b');
+      const files1 = buildFilesFromForm(fPadraoOn);
+      expect('Padrao inclui jpg', files1.img.endsWith('/b.jpg'));
+      expect('Padrao inclui pdf banner', files1.pdf.endsWith('/b_banner.pdf'));
+      expect('Padrao sem toggles cria pptx/texto vazios', files1.pptx==="" && files1.texto==="");
+
+      const fCustom = new FormData();
+      fCustom.set('pasta','mensu'); fCustom.set('img','a.jpg'); // pdf ausente
+      const files2 = buildFilesFromForm(fCustom);
+      expect('Custom mantém chaves vazias', files2.pdf==="" && files2.pptx==="" && files2.texto==="");
+
+      const fObj = new FormData();
+      fObj.set('pasta','p'); fObj.set('titulo','t'); fObj.set('autores','a'); fObj.set('evento','e'); fObj.set('data','2025-01-01');
+      const obj = buildObjectFromForm(fObj);
+      expect('repo e dados sempre presentes', 'repo' in obj && 'dados' in obj && obj.repo==="" && obj.dados==="");
     }
   </script>
 </body>
